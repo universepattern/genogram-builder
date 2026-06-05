@@ -172,6 +172,16 @@
                                         </label>
                                     </div>
                                 </div>
+                                <div class="form-field" id="relationFieldContainer" style="display: none; margin-top: 8px; margin-bottom: 8px;">
+                                    <label for="pRelation">Relation to Selected (<span id="relationSelectedName">None</span>)</label>
+                                    <select id="pRelation" class="cream-select">
+                                        <option value="none">Independent (No Link)</option>
+                                        <option value="father">Father (Male, Spawns Top-Left)</option>
+                                        <option value="mother">Mother (Female, Spawns Top-Right)</option>
+                                        <option value="partner">Spouse / Partner (Spawns Right)</option>
+                                        <option value="child">Child (Spawns Bottom)</option>
+                                    </select>
+                                </div>
                                 <button type="submit" class="primary-btn">Add Family Member</button>
                             </form>
                         </div>

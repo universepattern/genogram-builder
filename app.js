@@ -139,6 +139,7 @@ function addNewPersonWithGender(gender) {
   const y = -state.panY / state.zoom + containerRect.height / (2 * state.zoom);
   
   const offset = (state.people.length % 5) * 20;
+  const freePos = findFreePosition(x + offset, y + offset);
 
   const newPerson = {
     id: "person_" + Date.now() + "_" + Math.floor(Math.random() * 100),
@@ -151,8 +152,8 @@ function addNewPersonWithGender(gender) {
     isProband: false,
     isAdopted: false,
     traits: [],
-    x: Math.round((x + offset) / 20) * 20,
-    y: Math.round((y + offset) / 20) * 20
+    x: freePos.x,
+    y: freePos.y
   };
 
   addPerson(newPerson);
@@ -352,15 +353,44 @@ function setupEventListeners() {
       traits.push(cb.value);
     });
 
-    // Determine canvas position (center of current viewport)
-    const containerRect = canvasContainer.getBoundingClientRect();
-    const x = -state.panX / state.zoom + containerRect.width / (2 * state.zoom);
-    const y = -state.panY / state.zoom + containerRect.height / (2 * state.zoom);
-
+    const selected = state.people.find(p => p.id === state.selectedId);
+    const relation = document.getElementById("pRelation") ? document.getElementById("pRelation").value : "none";
+    
+    let spawnX, spawnY;
+    let finalGender = gender;
+    
+    if (selected && relation !== "none") {
+      if (relation === "father") {
+        spawnX = selected.x - 80;
+        spawnY = selected.y - 120;
+        finalGender = "M";
+      } else if (relation === "mother") {
+        spawnX = selected.x + 80;
+        spawnY = selected.y - 120;
+        finalGender = "F";
+      } else if (relation === "partner") {
+        spawnX = selected.x + 160;
+        spawnY = selected.y;
+      } else if (relation === "child") {
+        spawnX = selected.x;
+        spawnY = selected.y + 120;
+      }
+    } else {
+      const containerRect = canvasContainer.getBoundingClientRect();
+      const x = -state.panX / state.zoom + containerRect.width / (2 * state.zoom);
+      const y = -state.panY / state.zoom + containerRect.height / (2 * state.zoom);
+      
+      const offset = (state.people.length % 5) * 20;
+      spawnX = x + offset;
+      spawnY = y + offset;
+    }
+    
+    const freePos = findFreePosition(spawnX, spawnY);
+    
     const newPerson = {
       id: "person_" + Date.now() + "_" + Math.floor(Math.random() * 100),
       name,
-      gender,
+      gender: finalGender,
       age,
       birthYear,
       deathYear,
@@ -368,15 +398,135 @@ function setupEventListeners() {
       isProband,
       isAdopted,
       traits,
-      x: Math.round(x / 20) * 20,
-      y: Math.round(y / 20) * 20
+      x: freePos.x,
+      y: freePos.y
     };
-
+    
     addPerson(newPerson);
+    selectElement('person', newPerson.id);
+    
+    // Auto-focus and highlight the edit name text for immediate editing
+    setTimeout(() => {
+      const editNameInput = document.getElementById("editName");
+      if (editNameInput) {
+        editNameInput.focus();
+        editNameInput.select();
+      }
+    }, 50);
+    
+    // Auto-linking rules
+    if (selected && relation !== "none") {
+      if (relation === "father") {
+        const motherLink = state.children.find(link => 
+          link.childId === selected.id && 
+          link.parentType === 'individual' && 
+          state.people.some(p => p.id === link.parentId && p.gender === 'F')
+        );
+        if (motherLink) {
+          const relId = "rel_" + Date.now();
+          const newRel = {
+            id: relId,
+            type: 'married',
+            personA: newPerson.id,
+            personB: motherLink.parentId
+          };
+          addRelationship(newRel);
+          
+          state.children = state.children.filter(link => 
+            !(link.childId === selected.id && link.parentId === motherLink.parentId)
+          );
+          
+          const newChildLink = {
+            childId: selected.id,
+            parentType: 'relationship',
+            parentId: relId
+          };
+          addChild(newChildLink);
+        } else {
+          const newChildLink = {
+            childId: selected.id,
+            parentType: 'individual',
+            parentId: newPerson.id
+          };
+          addChild(newChildLink);
+        }
+      } else if (relation === "mother") {
+        const fatherLink = state.children.find(link => 
+          link.childId === selected.id && 
+          link.parentType === 'individual' && 
+          state.people.some(p => p.id === link.parentId && p.gender === 'M')
+        );
+        if (fatherLink) {
+          const relId = "rel_" + Date.now();
+          const newRel = {
+            id: relId,
+            type: 'married',
+            personA: fatherLink.parentId,
+            personB: newPerson.id
+          };
+          addRelationship(newRel);
+          
+          state.children = state.children.filter(link => 
+            !(link.childId === selected.id && link.parentId === fatherLink.parentId)
+          );
+          
+          const newChildLink = {
+            childId: selected.id,
+            parentType: 'relationship',
+            parentId: relId
+          };
+          addChild(newChildLink);
+        } else {
+          const newChildLink = {
+            childId: selected.id,
+            parentType: 'individual',
+            parentId: newPerson.id
+          };
+          addChild(newChildLink);
+        }
+      } else if (relation === "partner") {
+        const relId = "rel_" + Date.now();
+        const newRel = {
+          id: relId,
+          type: 'married',
+          personA: selected.id,
+          personB: newPerson.id
+        };
+        addRelationship(newRel);
+      } else if (relation === "child") {
+        const parentRels = state.relationships.filter(r => r.personA === selected.id || r.personB === selected.id);
+        if (parentRels.length === 1) {
+          const R = parentRels[0];
+          const newChildLink = {
+            childId: newPerson.id,
+            parentType: 'relationship',
+            parentId: R.id
+          };
+          addChild(newChildLink);
+        } else {
+          const newChildLink = {
+            childId: newPerson.id,
+            parentType: 'individual',
+            parentId: selected.id
+          };
+          addChild(newChildLink);
+        }
+      }
+    }
 
     // Reset Form
     addPersonForm.reset();
     document.querySelectorAll(".trait-chip").forEach(chip => chip.classList.remove("active"));
+    
+    // Hide and reset relation dropdown block
+    const relationFieldContainer = document.getElementById("relationFieldContainer");
+    if (relationFieldContainer) {
+      relationFieldContainer.style.display = "none";
+    }
+    const pRelation = document.getElementById("pRelation");
+    if (pRelation) {
+      pRelation.value = "none";
+    }
   });
 
   // Custom Trait Chip Checkboxes Visual Toggles
@@ -708,6 +858,57 @@ function getTouchCoords(e) {
   };
 }
 
+function findFreePosition(startX, startY) {
+  let targetX = Math.round(startX / 20) * 20;
+  let targetY = Math.round(startY / 20) * 20;
+  
+  const minDistance = 70;
+  const minDistanceSq = minDistance * minDistance;
+  
+  function isOverlapping(x, y) {
+    for (const person of state.people) {
+      const dx = person.x - x;
+      const dy = person.y - y;
+      if (dx * dx + dy * dy < minDistanceSq) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  if (!isOverlapping(targetX, targetY)) {
+    return { x: targetX, y: targetY };
+  }
+  
+  const step = 20;
+  const maxRings = 50;
+  
+  for (let ring = 1; ring <= maxRings; ring++) {
+    // Check top and bottom horizontal segments
+    for (let dx = -ring; dx <= ring; dx++) {
+      for (const dy of [-ring, ring]) {
+        const testX = targetX + dx * step;
+        const testY = targetY + dy * step;
+        if (!isOverlapping(testX, testY)) {
+          return { x: testX, y: testY };
+        }
+      }
+    }
+    // Check left and right vertical segments
+    for (let dy = -ring + 1; dy <= ring - 1; dy++) {
+      for (const dx of [-ring, ring]) {
+        const testX = targetX + dx * step;
+        const testY = targetY + dy * step;
+        if (!isOverlapping(testX, testY)) {
+          return { x: testX, y: testY };
+        }
+      }
+    }
+  }
+  
+  return { x: targetX, y: targetY };
+}
+
 function onTouchStart(e) {
   const nodeEl = e.target.closest(".genogram-node");
   if (nodeEl) {
@@ -828,6 +1029,26 @@ function selectElement(type, id) {
   
   showSelectionDetails();
 
+  // Show relation selection if person
+  if (type === 'person') {
+    const person = state.people.find(p => p.id === id);
+    if (person) {
+      const relationFieldContainer = document.getElementById("relationFieldContainer");
+      if (relationFieldContainer) {
+        relationFieldContainer.style.display = "block";
+      }
+      const relationSelectedName = document.getElementById("relationSelectedName");
+      if (relationSelectedName) {
+        relationSelectedName.textContent = person.name;
+      }
+    }
+  } else {
+    const relationFieldContainer = document.getElementById("relationFieldContainer");
+    if (relationFieldContainer) {
+      relationFieldContainer.style.display = "none";
+    }
+  }
+
   // Auto switch mobile view to show forms
   const mainLayout = document.querySelector(".main-layout");
   const mobileToggleBtn = document.getElementById("mobileToggleBtn");
@@ -856,6 +1077,16 @@ function clearSelection() {
   switchTab('build');
   const editBadge = document.getElementById("tabEditBadge");
   if (editBadge) editBadge.style.display = "none";
+
+  // Hide and reset relation dropdown block
+  const relationFieldContainer = document.getElementById("relationFieldContainer");
+  if (relationFieldContainer) {
+    relationFieldContainer.style.display = "none";
+  }
+  const pRelation = document.getElementById("pRelation");
+  if (pRelation) {
+    pRelation.value = "none";
+  }
 }
 
 function showSelectionDetails() {
