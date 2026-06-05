@@ -56,6 +56,123 @@ const Exporter = {
     return cssText;
   },
 
+  // Helper: Build a self-contained SVG legend block
+  buildLegendSvg(isColorMode, diagramWidth) {
+    const W = Math.max(diagramWidth, 700);
+    const H = 110; // legend strip height
+    const bg = isColorMode ? '#faf9f6' : '#ffffff';
+    const textColor = isColorMode ? '#3a3028' : '#000000';
+    const mutedColor = isColorMode ? '#826f56' : '#555555';
+    const borderColor = '#d4cbb8';
+
+    // ── Trait definitions ──────────────────────────────
+    const traits = [
+      { label: 'Heart',       color: '#d9625d', bw: 'horiz'   },
+      { label: 'Diabetes',    color: '#cfa140', bw: 'vert'    },
+      { label: 'Hypertension',color: '#4da5bc', bw: 'diag'    },
+      { label: 'Cancer',      color: '#8b6db8', bw: 'cross'   },
+      { label: 'Depression',  color: '#66ad75', bw: 'dots'    },
+      { label: 'Substance',   color: '#a35a58', bw: 'diagback'},
+      { label: 'Asthma',      color: '#d6874b', bw: 'sparse'  },
+      { label: 'Prediabetic', color: '#e3c16f', bw: 'zigzag'  },
+    ];
+
+    // Build SVG defs for B&W hatching patterns (small 12×12 tiles)
+    const patternDefs = `
+      <defs>
+        <pattern id="leg_horiz"    width="12" height="12" patternUnits="userSpaceOnUse"><line x1="0" y1="4"  x2="12" y2="4"  stroke="#000" stroke-width="1.2"/><line x1="0" y1="9"  x2="12" y2="9"  stroke="#000" stroke-width="1.2"/></pattern>
+        <pattern id="leg_vert"     width="12" height="12" patternUnits="userSpaceOnUse"><line x1="4"  y1="0" x2="4"  y2="12" stroke="#000" stroke-width="1.2"/><line x1="9"  y1="0" x2="9"  y2="12" stroke="#000" stroke-width="1.2"/></pattern>
+        <pattern id="leg_diag"     width="12" height="12" patternUnits="userSpaceOnUse"><line x1="0" y1="12" x2="12" y2="0"  stroke="#000" stroke-width="1.2"/><line x1="-6" y1="12" x2="6"  y2="0"  stroke="#000" stroke-width="1.2"/><line x1="6" y1="12" x2="18" y2="0" stroke="#000" stroke-width="1.2"/></pattern>
+        <pattern id="leg_cross"    width="12" height="12" patternUnits="userSpaceOnUse"><line x1="0" y1="12" x2="12" y2="0"  stroke="#000" stroke-width="1.2"/><line x1="0" y1="0"  x2="12" y2="12" stroke="#000" stroke-width="1.2"/></pattern>
+        <pattern id="leg_dots"     width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="1.5" fill="#000"/><circle cx="10" cy="10" r="1.5" fill="#000"/><circle cx="4" cy="10" r="1.5" fill="#000"/><circle cx="10" cy="4" r="1.5" fill="#000"/></pattern>
+        <pattern id="leg_diagback" width="12" height="12" patternUnits="userSpaceOnUse"><line x1="0" y1="0"  x2="12" y2="12" stroke="#000" stroke-width="1.2"/><line x1="-6" y1="0" x2="6" y2="12"  stroke="#000" stroke-width="1.2"/><line x1="6" y1="0" x2="18" y2="12" stroke="#000" stroke-width="1.2"/></pattern>
+        <pattern id="leg_sparse"   width="12" height="12" patternUnits="userSpaceOnUse"><line x1="0" y1="8"  x2="12" y2="8"  stroke="#000" stroke-width="1.2"/></pattern>
+        <pattern id="leg_zigzag"   width="12" height="12" patternUnits="userSpaceOnUse"><polyline points="0,10 3,4 6,10 9,4 12,10" fill="none" stroke="#000" stroke-width="1.2"/></pattern>
+      </defs>`;
+
+    // ── Row 1: Shapes & Status ─────────────────────────
+    const mStroke = isColorMode ? '#5681a8' : '#000';
+    const mFill   = isColorMode ? '#eaf1f7' : '#fff';
+    const fStroke = isColorMode ? '#c97171' : '#000';
+    const fFill   = isColorMode ? '#f9ebeb' : '#fff';
+
+    const shapesRow = `
+      <g transform="translate(16, 18)">
+        <text x="0" y="0" font-family="Outfit,sans-serif" font-size="8" font-weight="700" fill="${mutedColor}" text-transform="uppercase" letter-spacing="0.5">SHAPES &amp; STATUS</text>
+        <!-- Male -->
+        <rect x="0" y="6" width="16" height="16" fill="${mFill}" stroke="${mStroke}" stroke-width="1.5"/>
+        <text x="22" y="18" font-family="Outfit,sans-serif" font-size="9" fill="${textColor}">Male</text>
+        <!-- Female -->
+        <circle cx="60" cy="14" r="8" fill="${fFill}" stroke="${fStroke}" stroke-width="1.5"/>
+        <text x="72" y="18" font-family="Outfit,sans-serif" font-size="9" fill="${textColor}">Female</text>
+        <!-- Other -->
+        <polygon points="114,6 122,14 114,22 106,14" fill="${isColorMode ? '#faf5eb' : '#fff'}" stroke="${isColorMode ? '#c89c56' : '#000'}" stroke-width="1.5"/>
+        <text x="126" y="18" font-family="Outfit,sans-serif" font-size="9" fill="${textColor}">Other</text>
+        <!-- Deceased -->
+        <rect x="166" y="6" width="16" height="16" fill="#fff" stroke="#000" stroke-width="1.5"/>
+        <line x1="166" y1="6"  x2="182" y2="22" stroke="#000" stroke-width="1.5"/>
+        <line x1="182" y1="6"  x2="166" y2="22" stroke="#000" stroke-width="1.5"/>
+        <text x="186" y="18" font-family="Outfit,sans-serif" font-size="9" fill="${textColor}">Deceased</text>
+        <!-- Proband -->
+        <rect x="238" y="3"  width="22" height="22" fill="none" stroke="#000" stroke-width="1"/>
+        <rect x="241" y="6" width="16" height="16" fill="#fff" stroke="#000" stroke-width="1.5"/>
+        <text x="264" y="18" font-family="Outfit,sans-serif" font-size="9" fill="${textColor}">Proband</text>
+        <!-- Adopted -->
+        <path d="M 308 5 L 303 5 L 303 23 L 308 23" stroke="#000" stroke-width="1.5" fill="none"/>
+        <rect x="310" y="6" width="16" height="16" fill="#fff" stroke="#000" stroke-width="1.5"/>
+        <path d="M 326 5 L 331 5 L 331 23 L 326 23" stroke="#000" stroke-width="1.5" fill="none"/>
+        <text x="336" y="18" font-family="Outfit,sans-serif" font-size="9" fill="${textColor}">Adopted</text>
+      </g>`;
+
+    // ── Row 2: Relationship lines ──────────────────────
+    const relColor = isColorMode ? '#826f56' : '#000';
+    const relsRow = `
+      <g transform="translate(16, 52)">
+        <text x="0" y="0" font-family="Outfit,sans-serif" font-size="8" font-weight="700" fill="${mutedColor}">RELATIONSHIPS</text>
+        <line x1="0"   y1="10" x2="32" y2="10" stroke="${relColor}" stroke-width="2"/>
+        <text x="36"  y="14" font-family="Outfit,sans-serif" font-size="9" fill="${textColor}">Married</text>
+        <line x1="90"  y1="10" x2="122" y2="10" stroke="${relColor}" stroke-width="2" stroke-dasharray="4,4"/>
+        <text x="126" y="14" font-family="Outfit,sans-serif" font-size="9" fill="${textColor}">Cohabiting</text>
+        <line x1="198" y1="10" x2="230" y2="10" stroke="${relColor}" stroke-width="2"/>
+        <line x1="209" y1="17" x2="215" y2="4" stroke="${relColor}" stroke-width="2"/>
+        <text x="234" y="14" font-family="Outfit,sans-serif" font-size="9" fill="${textColor}">Separated</text>
+        <line x1="308" y1="10" x2="340" y2="10" stroke="${relColor}" stroke-width="2"/>
+        <line x1="318" y1="17" x2="324" y2="4" stroke="${relColor}" stroke-width="2"/>
+        <line x1="325" y1="17" x2="331" y2="4" stroke="${relColor}" stroke-width="2"/>
+        <text x="344" y="14" font-family="Outfit,sans-serif" font-size="9" fill="${textColor}">Divorced</text>
+      </g>`;
+
+    // ── Row 3: Medical conditions ──────────────────────
+    const swatchSize = 12;
+    let traitsRow = `<g transform="translate(16, 80)">
+        <text x="0" y="0" font-family="Outfit,sans-serif" font-size="8" font-weight="700" fill="${mutedColor}">MEDICAL CONDITIONS (quadrant shading)</text>`;
+    let tx = 0;
+    traits.forEach(t => {
+      const swatchFill = isColorMode
+        ? `fill="${t.color}"`
+        : `fill="url(#leg_${t.bw})"`;
+      traitsRow += `
+        <rect x="${tx}" y="6" width="${swatchSize}" height="${swatchSize}" ${swatchFill} stroke="#999" stroke-width="0.8"/>
+        <text x="${tx + swatchSize + 3}" y="16" font-family="Outfit,sans-serif" font-size="8.5" fill="${textColor}">${t.label}</text>`;
+      tx += swatchSize + 3 + t.label.length * 5.2 + 8;
+    });
+    traitsRow += `</g>`;
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+      ${patternDefs}
+      <!-- Background -->
+      <rect width="${W}" height="${H}" fill="${bg}"/>
+      <!-- Top border line -->
+      <line x1="0" y1="0" x2="${W}" y2="0" stroke="${borderColor}" stroke-width="1.5"/>
+      <!-- Title badge -->
+      <rect x="0" y="0" width="${W}" height="10" fill="${isColorMode ? '#f0ece0' : '#f5f5f5'}"/>
+      <text x="${W/2}" y="7.5" font-family="Outfit,sans-serif" font-size="7" font-weight="700" fill="${mutedColor}" text-anchor="middle" letter-spacing="1">GENOGRAM LEGEND  ·  Genogram.studio</text>
+      ${shapesRow}
+      ${relsRow}
+      ${traitsRow}
+    </svg>`;
+  },
+
   // Helper: Generate standalone SVG element string with embedded styles
   generateStandaloneSvgString(svgElement, people, isColorMode) {
     const clone = svgElement.cloneNode(true);
@@ -68,11 +185,6 @@ const Exporter = {
     if (viewportGroup) {
       viewportGroup.removeAttribute("transform");
     }
-    
-    // Set viewport dimensions
-    clone.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
-    clone.setAttribute("width", bbox.width);
-    clone.setAttribute("height", bbox.height);
     
     // Set style class on SVG root depending on mode
     if (!isColorMode) {
@@ -88,10 +200,38 @@ const Exporter = {
     const styleElement = document.createElementNS("http://www.w3.org/2000/svg", "style");
     styleElement.textContent = this.getStyles();
     clone.insertBefore(styleElement, clone.firstChild);
-    
-    // Serialize
+
+    // ── Build composite SVG: diagram + legend strip ────
+    const LEGEND_H = 110;
+    const totalW = bbox.width;
+    const totalH = bbox.height + LEGEND_H;
+
     const serializer = new XMLSerializer();
-    return serializer.serializeToString(clone);
+
+    // Diagram SVG — positioned at top with correct viewBox
+    clone.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+    clone.setAttribute("width", bbox.width);
+    clone.setAttribute("height", bbox.height);
+    const diagSvgString = serializer.serializeToString(clone);
+
+    // Legend SVG string
+    const legendSvgString = this.buildLegendSvg(isColorMode, totalW);
+
+    // Wrap both inside a composite outer SVG
+    const bg = isColorMode ? '#faf9f6' : '#ffffff';
+    const compositeSvg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="${totalW}" height="${totalH}">
+  <rect width="${totalW}" height="${totalH}" fill="${bg}"/>
+  <!-- Diagram -->
+  <image href="data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(diagSvgString)))}"
+         x="0" y="0" width="${bbox.width}" height="${bbox.height}"/>
+  <!-- Legend -->
+  <image href="data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(legendSvgString)))}"
+         x="0" y="${bbox.height}" width="${totalW}" height="${LEGEND_H}"/>
+</svg>`;
+
+    return compositeSvg;
   },
 
   // Export to Raster Image (PNG or JPEG)
