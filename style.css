@@ -1197,26 +1197,15 @@ body {
     filter: url(#hoverShadowFilter);
 }
 
-.node-label-bg {
-    fill: var(--bg-card);
-    stroke: var(--border-light);
-    stroke-width: 1px;
-    rx: 5px;
-    ry: 5px;
-    filter: drop-shadow(0 1px 2px rgba(130, 111, 86, 0.05));
-    transition: all 0.2s ease;
-}
+/* Node label styles — McGoldrick standard: no card background */
 
-.genogram-node:hover .node-label-bg {
-    fill: #faf9f6;
-    stroke: var(--border-focus);
-}
+/* Age inside shape — handled inline in SVG, no CSS class needed */
 
 .node-label-name {
     font-family: var(--font-sans);
-    font-size: 10px;
-    font-weight: 600;
-    fill: var(--text-main);
+    font-size: 11px;
+    font-weight: 700;
+    fill: #1a1510;
     text-anchor: middle;
     pointer-events: none;
 }
@@ -1224,22 +1213,19 @@ body {
 .node-label-details {
     font-family: var(--font-sans);
     font-size: 9px;
-    fill: var(--text-muted);
+    font-weight: 400;
+    fill: #826f56;
     text-anchor: middle;
     pointer-events: none;
 }
 
-.node-label-traits {
-    font-family: var(--font-sans);
-    font-size: 8.5px;
-    font-weight: 600;
-    fill: var(--danger);
-    text-anchor: middle;
-    pointer-events: none;
+/* B&W mode overrides */
+.bw-mode .node-label-name {
+    fill: #000000;
 }
 
-.bw-mode .node-label-traits {
-    fill: var(--text-muted);
+.bw-mode .node-label-details {
+    fill: #555555;
 }
 
 /* SVG Line Classes */

@@ -1908,77 +1908,68 @@ function render() {
       carrierHtml = `<circle cx="0" cy="0" r="5" fill="${dotColor}" stroke="none" />`;
     }
     
-    // Determine label positions to avoid line overlaps
-    const isParent = state.relationships.some(r => r.personA === p.id || r.personB === p.id);
-    const isChild = state.children.some(c => c.childId === p.id);
-    
-    // Compile label texts
-    let detailsLabel = "";
-    if (p.age) detailsLabel += p.age;
-    
-    const birthStr = p.birthYear || "";
-    const deathStr = p.deathYear || (p.isDeceased ? "?" : "");
-    if (birthStr || deathStr) {
-      if (detailsLabel) detailsLabel += " | ";
-      detailsLabel += `${birthStr}–${deathStr}`;
+    // ── Standard McGoldrick label layout ──────────────────
+    // • Age: inside the shape (centred)
+    // • Name: bold, below the shape — no background card
+    // • Dates: (birthYear) or (birthYear–deathYear), below name
+    // • Traits: shown ONLY via quadrant shading, not as text
+    // ─────────────────────────────────────────────────────
+
+    const textCol  = state.isColorMode ? '#3a3028' : '#000000';
+    const mutedCol = state.isColorMode ? '#826f56' : '#555555';
+
+    // --- Age label INSIDE the shape ---
+    let ageInsideHtml = '';
+    if (p.age) {
+      // For triangle (pregnancy) offset slightly lower to stay inside
+      const ageY = p.gender === 'P' ? 6 : 5;
+      ageInsideHtml = `<text
+        x="0" y="${ageY}"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        font-family="'Outfit', 'Inter', sans-serif"
+        font-size="11"
+        font-weight="700"
+        fill="${textCol}"
+        pointer-events="none">${p.age}</text>`;
     }
-    
-    // Compile diseases/traits names
-    const allActiveTraits = p.traits || [];
-    const SHORT_TRAIT_NAMES = {
-      heart_disease: "Heart",
-      diabetes: "Diabetes",
-      hypertension: "Hypertension",
-      cancer: "Cancer",
-      depression: "Depression",
-      substance_abuse: "Abuse",
-      asthma: "Asthma",
-      hemophilia: "Hemophilia",
-      hemophilia_carrier: "Carrier",
-      prediabetic: "Prediabetic"
-    };
-    const traitNames = allActiveTraits.map(tId => SHORT_TRAIT_NAMES[tId] || tId);
-    const traitsLabel = traitNames.join(", ");
-    const hasTraits = allActiveTraits.length > 0;
-    
-    // Determine card positioning (above vs below node shape)
-    const isBelow = !(isParent && !isChild);
-    let cardHtml = "";
-    
-    const displayName = p.name.length > 16 ? p.name.substring(0, 14) + "..." : p.name;
-    
-    if (isBelow) {
-      const rectH = hasTraits ? 42 : 30;
-      const rectY = 24;
-      const nameYPos = 36;
-      const detailsYPos = 48;
-      const traitsYPos = 60;
-      
-      cardHtml = `
-        <rect class="node-label-bg" x="-55" y="${rectY}" width="110" height="${rectH}" />
-        <text class="node-label-name" y="${nameYPos}">${displayName}</text>
-        <text class="node-label-details" y="${detailsYPos}">${detailsLabel}</text>
-      `;
-      if (hasTraits) {
-        cardHtml += `<text class="node-label-traits" y="${traitsYPos}">${traitsLabel}</text>`;
-      }
-    } else {
-      const rectH = hasTraits ? 42 : 30;
-      const rectY = -24 - rectH;
-      const nameYPos = rectY + 12;
-      const detailsYPos = rectY + 24;
-      const traitsYPos = rectY + 36;
-      
-      cardHtml = `
-        <rect class="node-label-bg" x="-55" y="${rectY}" width="110" height="${rectH}" />
-        <text class="node-label-name" y="${nameYPos}">${displayName}</text>
-        <text class="node-label-details" y="${detailsYPos}">${detailsLabel}</text>
-      `;
-      if (hasTraits) {
-        cardHtml += `<text class="node-label-traits" y="${traitsYPos}">${traitsLabel}</text>`;
-      }
+
+    // --- Name label: bold, directly below shape ---
+    const displayName = p.name.length > 18 ? p.name.substring(0, 16) + '…' : p.name;
+    const nameY = p.gender === 'P' ? 32 : 30;   // pregnancy triangle is shorter
+
+    const nameHtml = `<text
+      x="0" y="${nameY}"
+      text-anchor="middle"
+      font-family="'Outfit', 'Inter', sans-serif"
+      font-size="11"
+      font-weight="700"
+      fill="${textCol}"
+      pointer-events="none">${displayName}</text>`;
+
+    // --- Date label: (birthYear) or (birthYear–deathYear) ---
+    let dateHtml = '';
+    const birthStr = p.birthYear ? String(p.birthYear) : '';
+    const deathStr = p.deathYear ? String(p.deathYear) : (p.isDeceased ? '?' : '');
+    let dateText = '';
+    if (birthStr && deathStr)       dateText = `(${birthStr}–${deathStr})`;
+    else if (birthStr)              dateText = `(${birthStr})`;
+    else if (deathStr)              dateText = `(d. ${deathStr})`;
+
+    if (dateText) {
+      const dateY = nameY + 13;
+      dateHtml = `<text
+        x="0" y="${dateY}"
+        text-anchor="middle"
+        font-family="'Outfit', 'Inter', sans-serif"
+        font-size="9"
+        font-weight="400"
+        fill="${mutedCol}"
+        pointer-events="none">${dateText}</text>`;
     }
-    
+
+    const cardHtml = ageInsideHtml + nameHtml + dateHtml;
+
     // Build HTML block inside the node group
     gNode.innerHTML = `
       ${shapeHtml}
