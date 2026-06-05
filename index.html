@@ -46,6 +46,22 @@
                         <span>Colored</span>
                     </button>
                 </div>
+                <div class="help-dropdown-container">
+                    <button id="helpDropdownBtn" class="help-main-btn" title="Show quick guide">
+                        <span>📖 Guide</span>
+                        <span class="arrow-down">▼</span>
+                    </button>
+                    <div id="helpMenu" class="help-dropdown-menu">
+                        <h3 style="font-family: var(--font-serif); font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 10px; border-bottom: 1px dashed var(--border-light); padding-bottom: 6px;">How to Draw Your Genogram</h3>
+                        <div class="help-steps-list" style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; line-height: 1.5; color: var(--text-muted);">
+                            <div><strong>1. Spawn Members:</strong> Click any gender shape in the bottom legend (e.g. <em>Male (Add)</em>) to spawn a member.</div>
+                            <div><strong>2. Edit Details:</strong> The editor opens automatically. Enter details and click <em>Save Changes</em>.</div>
+                            <div><strong>3. Connect Partners:</strong> Click one member, select <em>Use as Partner A</em>. Click another, select <em>Use as Partner B</em>. In the Build tab, click <em>Connect Partners</em>.</div>
+                            <div><strong>4. Link Children:</strong> Click a parent connection line, select <em>Use as Parent Pair</em>. Click a child node, select <em>Use as Child</em>. Click <em>Link Child</em>.</div>
+                            <div style="border-top: 1px dashed var(--border-light); padding-top: 8px; margin-top: 4px; font-size: 11px; color: var(--text-main);">💡 <em>Drag any shape to arrange. Nodes automatically snap to the grid and avoid overlaps!</em></div>
+                        </div>
+                    </div>
+                </div>
                 <div class="export-dropdown-container">
                     <button id="exportDropdownBtn" class="primary-btn export-main-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>

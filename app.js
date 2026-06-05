@@ -301,17 +301,30 @@ function setupEventListeners() {
   // Export Dropdown Trigger
   const exportDropdownBtn = document.getElementById("exportDropdownBtn");
   const exportMenu = document.getElementById("exportMenu");
+  const helpDropdownBtn = document.getElementById("helpDropdownBtn");
+  const helpMenu = document.getElementById("helpMenu");
+
   if (exportDropdownBtn && exportMenu) {
     exportDropdownBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       exportMenu.classList.toggle("show");
-    });
-    
-    // Close export menu on click outside
-    window.addEventListener("click", () => {
-      exportMenu.classList.remove("show");
+      if (helpMenu) helpMenu.classList.remove("show");
     });
   }
+
+  if (helpDropdownBtn && helpMenu) {
+    helpDropdownBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      helpMenu.classList.toggle("show");
+      if (exportMenu) exportMenu.classList.remove("show");
+    });
+  }
+
+  // Close menus on click outside
+  window.addEventListener("click", () => {
+    if (exportMenu) exportMenu.classList.remove("show");
+    if (helpMenu) helpMenu.classList.remove("show");
+  });
 
   // Floating Legend Collapsible Trigger
   const legendToggle = document.getElementById("legendToggle");
@@ -599,7 +612,7 @@ function setupEventListeners() {
 
   // SVG Pan & Zoom Interactive Controls
   svg.addEventListener("mousedown", onMouseDown);
-  svg.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mousemove", onMouseMove);
   window.addEventListener("mouseup", onMouseUp);
   svg.addEventListener("wheel", onWheel, { passive: false });
   svg.addEventListener("touchstart", onTouchStart, { passive: false });
@@ -749,6 +762,7 @@ function fitToScreen() {
 }
 
 function onMouseDown(e) {
+  e.preventDefault();
   // If clicking directly on a node shape, handle dragging instead of panning
   const nodeEl = e.target.closest(".genogram-node");
   if (nodeEl) {
