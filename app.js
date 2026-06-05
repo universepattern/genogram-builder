@@ -71,6 +71,102 @@ const ALL_TRAITS = [
   { id: "prediabetic", name: "Prediabetic" }
 ];
 
+// -----------------------------------------------
+// LEGEND: Dynamic mode-aware legend builder
+// -----------------------------------------------
+function updateLegend() {
+  const colorMode = state.isColorMode;
+
+  // --- 1. Medical Conditions legend row ---
+  const medRow = document.querySelector('.legend-bar-section:nth-child(3) .legend-row');
+  if (medRow) {
+    // Trait definitions: id, label, color (for Color mode), SVG pattern (for B&W)
+    const traits = [
+      { id: 'heart_disease',   label: 'Heart',      color: '#d9625d', bwLines: 'horizontal' },
+      { id: 'diabetes',        label: 'Diabetes',   color: '#cfa140', bwLines: 'vertical'   },
+      { id: 'hypertension',    label: 'Hypertension', color: '#4da5bc', bwLines: 'diagonal'  },
+      { id: 'cancer',          label: 'Cancer',     color: '#8b6db8', bwLines: 'cross'      },
+      { id: 'depression',      label: 'Depression', color: '#66ad75', bwLines: 'dots'       },
+      { id: 'substance_abuse', label: 'Substance',  color: '#a35a58', bwLines: 'diagback'   },
+      { id: 'asthma',          label: 'Asthma',     color: '#d6874b', bwLines: 'sparse'     },
+      { id: 'prediabetic',     label: 'Prediabetic',color: '#e3c16f', bwLines: 'zigzag'     },
+    ];
+
+    // Inline SVG patterns for B&W legend swatches
+    function bwSwatch(type) {
+      const s = 16; // swatch size
+      let pattern = '';
+      if (type === 'horizontal') {
+        pattern = `<line x1="0" y1="4"  x2="${s}" y2="4"  stroke="#000" stroke-width="1.2"/>
+                   <line x1="0" y1="9"  x2="${s}" y2="9"  stroke="#000" stroke-width="1.2"/>
+                   <line x1="0" y1="14" x2="${s}" y2="14" stroke="#000" stroke-width="1.2"/>`;
+      } else if (type === 'vertical') {
+        pattern = `<line x1="4"  y1="0" x2="4"  y2="${s}" stroke="#000" stroke-width="1.2"/>
+                   <line x1="9"  y1="0" x2="9"  y2="${s}" stroke="#000" stroke-width="1.2"/>
+                   <line x1="14" y1="0" x2="14" y2="${s}" stroke="#000" stroke-width="1.2"/>`;
+      } else if (type === 'diagonal') {
+        pattern = `<line x1="0" y1="${s}" x2="${s}" y2="0" stroke="#000" stroke-width="1.2"/>
+                   <line x1="-4" y1="${s}" x2="${s/2}" y2="0" stroke="#000" stroke-width="1.2"/>
+                   <line x1="${s/2}" y1="${s}" x2="${s+4}" y2="0" stroke="#000" stroke-width="1.2"/>`;
+      } else if (type === 'cross') {
+        pattern = `<line x1="0" y1="${s}" x2="${s}" y2="0" stroke="#000" stroke-width="1.2"/>
+                   <line x1="0" y1="0" x2="${s}" y2="${s}" stroke="#000" stroke-width="1.2"/>`;
+      } else if (type === 'dots') {
+        pattern = `<circle cx="4" cy="4" r="1.5" fill="#000"/>
+                   <circle cx="12" cy="4" r="1.5" fill="#000"/>
+                   <circle cx="4" cy="12" r="1.5" fill="#000"/>
+                   <circle cx="12" cy="12" r="1.5" fill="#000"/>
+                   <circle cx="8" cy="8" r="1.5" fill="#000"/>`;
+      } else if (type === 'diagback') {
+        pattern = `<line x1="0" y1="0" x2="${s}" y2="${s}" stroke="#000" stroke-width="1.2"/>
+                   <line x1="-4" y1="0" x2="${s/2}" y2="${s}" stroke="#000" stroke-width="1.2"/>
+                   <line x1="${s/2}" y1="0" x2="${s+4}" y2="${s}" stroke="#000" stroke-width="1.2"/>`;
+      } else if (type === 'sparse') {
+        pattern = `<line x1="0" y1="${s*0.6}" x2="${s}" y2="${s*0.6}" stroke="#000" stroke-width="1.2"/>`;
+      } else if (type === 'zigzag') {
+        pattern = `<polyline points="0,12 4,6 8,12 12,6 16,12" fill="none" stroke="#000" stroke-width="1.2"/>`;
+      }
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"
+                style="border:1px solid #bbb; border-radius:2px; display:inline-block; vertical-align:middle; background:#fff; flex-shrink:0;"
+                overflow="hidden">
+                ${pattern}
+              </svg>`;
+    }
+
+    medRow.innerHTML = traits.map(t => {
+      const swatch = colorMode
+        ? `<span style="width:16px;height:16px;border-radius:3px;background:${t.color};border:1px solid rgba(0,0,0,0.15);display:inline-block;vertical-align:middle;flex-shrink:0;"></span>`
+        : bwSwatch(t.bwLines);
+      return `<span style="display:flex;align-items:center;gap:5px;font-size:11.5px;">${swatch} ${t.label}</span>`;
+    }).join('');
+  }
+
+  // --- 2. Gender shape symbols in legend: tint in color mode ---
+  const symMale   = document.querySelector('.sym-male');
+  const symFemale = document.querySelector('.sym-female');
+  const symOther  = document.querySelector('.sym-other');
+  const symPreg   = document.querySelector('.sym-pregnancy');
+
+  if (symMale) {
+    symMale.style.backgroundColor   = colorMode ? '#eaf1f7' : '';
+    symMale.style.borderColor       = colorMode ? '#5681a8' : '';
+  }
+  if (symFemale) {
+    symFemale.style.backgroundColor = colorMode ? '#f9ebeb' : '';
+    symFemale.style.borderColor     = colorMode ? '#c97171' : '';
+  }
+  if (symOther) {
+    symOther.style.backgroundColor  = colorMode ? '#faf5eb' : '';
+    symOther.style.borderColor      = colorMode ? '#c89c56' : '';
+  }
+  if (symPreg) {
+    // Triangle SVG — swap fill/stroke color
+    symPreg.style.backgroundImage = colorMode
+      ? `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><polygon points="10,2 18,17 2,17" fill="%23ebf2eb" stroke="%23789078" stroke-width="2"/></svg>')`
+      : `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><polygon points="10,2 18,17 2,17" fill="white" stroke="black" stroke-width="2"/></svg>')`;
+  }
+}
+
 // Initialize Application
 function init() {
   setupEventListeners();
@@ -777,27 +873,32 @@ function fitToScreen() {
   applyViewTransform();
 }
 
+// ---- MOUSE / DRAG / PAN / ZOOM ----
+// Uses requestAnimationFrame for smooth node dragging.
+// State guards prevent ghost panning after pointer leaves window.
+
+let _rafPending = false; // RAF guard — only one frame queued at a time
+
 function onMouseDown(e) {
-  e.preventDefault();
-  // If clicking directly on a node shape, handle dragging instead of panning
+  // Only react to primary mouse button (left click)
+  if (e.button !== 0) return;
+
   const nodeEl = e.target.closest(".genogram-node");
   if (nodeEl) {
+    e.preventDefault();
     const id = nodeEl.getAttribute("data-id");
     selectElement('person', id);
-    
+
     const person = state.people.find(p => p.id === id);
     if (person) {
       state.draggedNode = person;
-      
-      // Calculate mouse position inside zoomed SVG coordinate system
       const pt = getSvgCoords(e);
       state.dragOffset.x = pt.x - person.x;
       state.dragOffset.y = pt.y - person.y;
     }
     return;
   }
-  
-  // If clicking on a relationship line, select relationship
+
   const lineEl = e.target.closest(".genogram-line, .genogram-line-hitbox");
   if (lineEl) {
     const groupEl = lineEl.closest("g");
@@ -810,10 +911,9 @@ function onMouseDown(e) {
     }
   }
 
-  // Clear selection if clicking empty canvas background
+  // Click on empty canvas — clear selection and start panning
+  e.preventDefault();
   clearSelection();
-  
-  // Start canvas panning
   state.isPanning = true;
   state.dragOffset.x = e.clientX - state.panX;
   state.dragOffset.y = e.clientY - state.panY;
@@ -821,31 +921,42 @@ function onMouseDown(e) {
 
 function onMouseMove(e) {
   if (state.draggedNode) {
-    // Perform node dragging
+    e.preventDefault();
     const pt = getSvgCoords(e);
     let newX = pt.x - state.dragOffset.x;
     let newY = pt.y - state.dragOffset.y;
-    
+
     if (state.gridSnap) {
       newX = Math.round(newX / 20) * 20;
       newY = Math.round(newY / 20) * 20;
     }
-    
+
     state.draggedNode.x = newX;
     state.draggedNode.y = newY;
-    
-    render();
-  } else if (state.isPanning) {
-    // Perform canvas panning
+
+    // Throttle renders via RAF — prevents jank on fast moves
+    if (!_rafPending) {
+      _rafPending = true;
+      requestAnimationFrame(() => {
+        render();
+        _rafPending = false;
+      });
+    }
+    return;
+  }
+
+  if (state.isPanning) {
+    e.preventDefault();
     state.panX = e.clientX - state.dragOffset.x;
     state.panY = e.clientY - state.dragOffset.y;
     applyViewTransform();
   }
 }
 
-function onMouseUp() {
+function onMouseUp(e) {
   state.draggedNode = null;
   state.isPanning = false;
+  _rafPending = false;
 }
 
 function onWheel(e) {
