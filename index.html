@@ -95,6 +95,7 @@
                                         <option value="M">Male (Square)</option>
                                         <option value="F">Female (Circle)</option>
                                         <option value="X">Other / Unknown (Diamond)</option>
+                                        <option value="P">Pregnancy (Triangle)</option>
                                     </select>
                                 </div>
                                 <div class="form-field">
@@ -112,9 +113,19 @@
                                     <input type="number" id="pDeath" placeholder="YYYY" class="cream-input" min="1800" max="2100">
                                 </div>
                             </div>
-                            <div class="form-row-checkbox">
-                                <input type="checkbox" id="pDeceased" class="cream-checkbox">
-                                <label for="pDeceased" class="checkbox-label">Deceased (Mark with X)</label>
+                            <div class="form-row-checkboxes-inline" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+                                <div class="form-row-checkbox">
+                                    <input type="checkbox" id="pDeceased" class="cream-checkbox">
+                                    <label for="pDeceased" class="checkbox-label">Deceased (Mark with X)</label>
+                                </div>
+                                <div class="form-row-checkbox">
+                                    <input type="checkbox" id="pProband" class="cream-checkbox">
+                                    <label for="pProband" class="checkbox-label">Index Person / Proband (Double Line)</label>
+                                </div>
+                                <div class="form-row-checkbox">
+                                    <input type="checkbox" id="pAdopted" class="cream-checkbox">
+                                    <label for="pAdopted" class="checkbox-label">Adopted Status (Shape Brackets)</label>
+                                </div>
                             </div>
                             <div class="form-field">
                                 <label>Medical Traits / Conditions</label>
@@ -342,8 +353,20 @@
                                         <span>Other / Unknown</span>
                                     </div>
                                     <div class="legend-item">
+                                        <span class="legend-symbol sym-pregnancy"></span>
+                                        <span>Pregnancy (Triangle)</span>
+                                    </div>
+                                    <div class="legend-item">
                                         <span class="legend-symbol sym-deceased"></span>
                                         <span>Deceased (Cross)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-symbol sym-proband"></span>
+                                        <span>Index / Proband</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-symbol sym-adopted"></span>
+                                        <span>Adopted [ ]</span>
                                     </div>
                                 </div>
 

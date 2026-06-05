@@ -281,6 +281,8 @@ function setupEventListeners() {
     const birthYear = document.getElementById("pBirth").value;
     const deathYear = document.getElementById("pDeath").value;
     const isDeceased = document.getElementById("pDeceased").checked;
+    const isProband = document.getElementById("pProband").checked;
+    const isAdopted = document.getElementById("pAdopted").checked;
     
     // Read traits checkboxes
     const traits = [];
@@ -301,6 +303,8 @@ function setupEventListeners() {
       birthYear,
       deathYear,
       isDeceased,
+      isProband,
+      isAdopted,
       traits,
       x: Math.round(x / 20) * 20,
       y: Math.round(y / 20) * 20
@@ -666,6 +670,7 @@ function showSelectionDetails() {
               <option value="M" ${p.gender === 'M' ? 'selected' : ''}>Male</option>
               <option value="F" ${p.gender === 'F' ? 'selected' : ''}>Female</option>
               <option value="X" ${p.gender === 'X' ? 'selected' : ''}>Other</option>
+              <option value="P" ${p.gender === 'P' ? 'selected' : ''}>Pregnancy (Triangle)</option>
             </select>
           </div>
           <div class="form-field">
@@ -683,9 +688,19 @@ function showSelectionDetails() {
             <input type="number" id="editDeath" value="${p.deathYear || ''}" class="cream-input">
           </div>
         </div>
-        <div class="form-row-checkbox">
-          <input type="checkbox" id="editDeceased" ${p.isDeceased ? 'checked' : ''} class="cream-checkbox">
-          <label for="editDeceased" class="checkbox-label">Deceased</label>
+        <div class="form-row-checkboxes-inline" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+          <div class="form-row-checkbox">
+            <input type="checkbox" id="editDeceased" ${p.isDeceased ? 'checked' : ''} class="cream-checkbox">
+            <label for="editDeceased" class="checkbox-label">Deceased</label>
+          </div>
+          <div class="form-row-checkbox">
+            <input type="checkbox" id="editProband" ${p.isProband ? 'checked' : ''} class="cream-checkbox">
+            <label for="editProband" class="checkbox-label">Index Person / Proband (Double Line)</label>
+          </div>
+          <div class="form-row-checkbox">
+            <input type="checkbox" id="editAdopted" ${p.isAdopted ? 'checked' : ''} class="cream-checkbox">
+            <label for="editAdopted" class="checkbox-label">Adopted Status (Brackets)</label>
+          </div>
         </div>
         <div class="form-field">
           <label>Medical Conditions</label>
@@ -708,13 +723,15 @@ function showSelectionDetails() {
       const birthYear = document.getElementById("editBirth").value;
       const deathYear = document.getElementById("editDeath").value;
       const isDeceased = document.getElementById("editDeceased").checked;
+      const isProband = document.getElementById("editProband").checked;
+      const isAdopted = document.getElementById("editAdopted").checked;
       
       const traits = [];
       document.querySelectorAll(".edit-trait-cb:checked").forEach(cb => {
         traits.push(cb.value);
       });
       
-      updatePerson(p.id, { name, gender, age, birthYear, deathYear, isDeceased, traits });
+      updatePerson(p.id, { name, gender, age, birthYear, deathYear, isDeceased, isProband, isAdopted, traits });
     });
     
     document.getElementById("deleteSelectBtn").addEventListener("click", () => {
@@ -1061,8 +1078,8 @@ function render() {
     let baseFill = "#ffffff";
     
     if (state.isColorMode) {
-      strokeCol = p.gender === 'M' ? '#5681a8' : (p.gender === 'F' ? '#c97171' : '#c89c56');
-      baseFill = p.gender === 'M' ? '#eaf1f7' : (p.gender === 'F' ? '#f9ebeb' : '#faf5eb');
+      strokeCol = p.gender === 'M' ? '#5681a8' : (p.gender === 'F' ? '#c97171' : (p.gender === 'P' ? '#789078' : '#c89c56'));
+      baseFill = p.gender === 'M' ? '#eaf1f7' : (p.gender === 'F' ? '#f9ebeb' : (p.gender === 'P' ? '#ebf2eb' : '#faf5eb'));
     }
     
     // Quadrant paths for Traits
@@ -1103,6 +1120,13 @@ function render() {
           } else if (idx === 3) { // Bottom-Left
             traitPathsHtml += `<path d="M 0 20 A 20 20 0 0 1 -20 0 L 0 0 Z" ${fillStyle} />`;
           }
+        } else if (p.gender === 'P') {
+          // Triangle halves for pregnancy
+          if (idx === 0) { // Left Half
+            traitPathsHtml += `<polygon points="0,-20 -20,15 0,15 Z" ${fillStyle} />`;
+          } else if (idx === 1) { // Right Half
+            traitPathsHtml += `<polygon points="0,-20 20,15 0,15 Z" ${fillStyle} />`;
+          }
         } else {
           // Diamond quadrant paths
           if (idx === 0) { // Top-Left
@@ -1126,10 +1150,35 @@ function render() {
       shapeHtml = `<rect x="-20" y="-20" width="40" height="40" fill="${baseFill}" stroke="${strokeCol}" ${filterShadow} />`;
     } else if (p.gender === 'F') {
       shapeHtml = `<circle cx="0" cy="0" r="20" fill="${baseFill}" stroke="${strokeCol}" ${filterShadow} />`;
+    } else if (p.gender === 'P') {
+      shapeHtml = `<polygon points="0,-20 20,15 -20,15" fill="${baseFill}" stroke="${strokeCol}" ${filterShadow} />`;
     } else {
       shapeHtml = `<polygon points="0,-20 20,0 0,20 -20,0" fill="${baseFill}" stroke="${strokeCol}" ${filterShadow} />`;
     }
     
+    // Proband overlay (Double Border)
+    let probandHtml = "";
+    if (p.isProband) {
+      if (p.gender === 'M') {
+        probandHtml = `<rect x="-24" y="-24" width="48" height="48" fill="none" stroke="${strokeCol}" stroke-width="2" />`;
+      } else if (p.gender === 'F') {
+        probandHtml = `<circle cx="0" cy="0" r="24" fill="none" stroke="${strokeCol}" stroke-width="2" />`;
+      } else if (p.gender === 'P') {
+        probandHtml = `<polygon points="0,-25 25,19 -25,19" fill="none" stroke="${strokeCol}" stroke-width="2" />`;
+      } else {
+        probandHtml = `<polygon points="0,-25 25,0 0,25 -25,0" fill="none" stroke="${strokeCol}" stroke-width="2" />`;
+      }
+    }
+
+    // Adopted brackets overlay
+    let adoptedHtml = "";
+    if (p.isAdopted) {
+      adoptedHtml = `
+        <path d="M -26 -22 L -31 -22 L -31 22 L -26 22" stroke="${strokeCol}" stroke-width="2" fill="none" />
+        <path d="M 26 -22 L 31 -22 L 31 22 L 26 22" stroke="${strokeCol}" stroke-width="2" fill="none" />
+      `;
+    }
+
     // Deceased mark (Cross overlay)
     let deceasedHtml = "";
     if (p.isDeceased) {
@@ -1152,6 +1201,8 @@ function render() {
     gNode.innerHTML = `
       ${shapeHtml}
       ${traitPathsHtml}
+      ${probandHtml}
+      ${adoptedHtml}
       ${deceasedHtml}
       
       <!-- Label Name (White stroke shadow underneath for high legibility over lines) -->
