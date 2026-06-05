@@ -1383,3 +1383,24 @@ body {
         justify-content: space-between;
     }
 }
+
+.clickable-legend-item {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    border: 1px dashed transparent;
+    user-select: none;
+}
+
+.clickable-legend-item:hover {
+    background-color: rgba(130, 111, 86, 0.08);
+    border-color: var(--border-focus);
+    box-shadow: var(--shadow-sharp);
+    transform: translateY(-1px);
+}
+
+.clickable-legend-item:active {
+    transform: translateY(0);
+    background-color: rgba(130, 111, 86, 0.15);
+}

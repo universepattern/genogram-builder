@@ -124,6 +124,50 @@ function deletePerson(id) {
   render();
 }
 
+function addNewPersonWithGender(gender) {
+  let genderName = "Person";
+  if (gender === 'M') genderName = "John Doe";
+  else if (gender === 'F') genderName = "Jane Doe";
+  else if (gender === 'P') genderName = "Pregnancy";
+  else if (gender === 'X') genderName = "Other";
+  
+  const count = state.people.filter(p => p.gender === gender).length + 1;
+  const name = `${genderName} ${count}`;
+  
+  const containerRect = canvasContainer.getBoundingClientRect();
+  const x = -state.panX / state.zoom + containerRect.width / (2 * state.zoom);
+  const y = -state.panY / state.zoom + containerRect.height / (2 * state.zoom);
+  
+  const offset = (state.people.length % 5) * 20;
+
+  const newPerson = {
+    id: "person_" + Date.now() + "_" + Math.floor(Math.random() * 100),
+    name,
+    gender,
+    age: "",
+    birthYear: "",
+    deathYear: "",
+    isDeceased: false,
+    isProband: false,
+    isAdopted: false,
+    traits: [],
+    x: Math.round((x + offset) / 20) * 20,
+    y: Math.round((y + offset) / 20) * 20
+  };
+
+  addPerson(newPerson);
+  selectElement('person', newPerson.id);
+  
+  // Auto-focus and highlight the edit name text for immediate editing
+  setTimeout(() => {
+    const editNameInput = document.getElementById("editName");
+    if (editNameInput) {
+      editNameInput.focus();
+      editNameInput.select();
+    }
+  }, 50);
+}
+
 function addRelationship(rel) {
   // Prevent duplicate partnership
   const exists = state.relationships.some(
@@ -443,6 +487,14 @@ function setupEventListeners() {
   document.getElementById("exportSvgBtn").addEventListener("click", () => Exporter.exportSvg(svg, state.people, state.isColorMode));
   document.getElementById("exportPdfBtn").addEventListener("click", () => Exporter.exportPdf(svg, state.people, state.isColorMode));
   document.getElementById("exportWordBtn").addEventListener("click", () => Exporter.exportWord(svg, state.people, state.isColorMode));
+
+  // Legend-to-canvas spawning event listeners
+  document.querySelectorAll(".clickable-legend-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const gender = item.getAttribute("data-gender");
+      addNewPersonWithGender(gender);
+    });
+  });
 }
 
 // Update option lists inside sidebar dropdowns
@@ -886,6 +938,14 @@ function showSelectionDetails() {
           </div>
           <button id="deleteSelectBtn" class="danger-btn" style="width: 100%; margin: 0;">Delete Member</button>
         </div>
+        <div class="shortcut-actions-group" style="margin-top: 10px; border-top: 1px dashed var(--border-light); padding-top: 10px;">
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">Connection Shortcuts</label>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button id="setPartnerABtn" class="secondary-btn" style="flex: 1; padding: 6px 8px; font-size: 10.5px; margin: 0;">Use as Partner A</button>
+            <button id="setPartnerBBtn" class="secondary-btn" style="flex: 1; padding: 6px 8px; font-size: 10.5px; margin: 0;">Use as Partner B</button>
+            <button id="setChildBtn" class="secondary-btn" style="flex: 1; padding: 6px 8px; font-size: 10.5px; margin: 0; min-width: 100%;">Use as Child</button>
+          </div>
+        </div>
       </div>
     `;
     
@@ -925,6 +985,28 @@ function showSelectionDetails() {
         const chip = e.target.closest(".trait-chip");
         chip.classList.toggle("active", e.target.checked);
       });
+    });
+
+    // Connection Shortcuts bindings
+    document.getElementById("setPartnerABtn").addEventListener("click", () => {
+      relPartnerA.value = p.id;
+      switchTab('build');
+      const sections = document.querySelectorAll(".sidebar-section");
+      if (sections[1]) sections[1].classList.add("active");
+    });
+    
+    document.getElementById("setPartnerBBtn").addEventListener("click", () => {
+      relPartnerB.value = p.id;
+      switchTab('build');
+      const sections = document.querySelectorAll(".sidebar-section");
+      if (sections[1]) sections[1].classList.add("active");
+    });
+    
+    document.getElementById("setChildBtn").addEventListener("click", () => {
+      childSelect.value = p.id;
+      switchTab('build');
+      const sections = document.querySelectorAll(".sidebar-section");
+      if (sections[1]) sections[1].classList.add("active");
     });
     
   } else if (state.selectedType === 'relationship') {
@@ -977,6 +1059,10 @@ function showSelectionDetails() {
           </div>
           <button id="deleteRelBtn" class="danger-btn" style="width: 100%; margin: 0;">Break Connection</button>
         </div>
+        <div class="shortcut-actions-group" style="margin-top: 10px; border-top: 1px dashed var(--border-light); padding-top: 10px;">
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">Connection Shortcuts</label>
+          <button id="setParentPairBtn" class="secondary-btn" style="width: 100%; padding: 6px 8px; font-size: 11px; margin: 0;">Use as Parent Pair</button>
+        </div>
       </div>
     `;
     
@@ -996,6 +1082,13 @@ function showSelectionDetails() {
       if (confirm("Disconnect these partners? All linked children will be unlinked from them.")) {
         deleteRelationship(rel.id);
       }
+    });
+
+    document.getElementById("setParentPairBtn").addEventListener("click", () => {
+      parentLinkSelect.value = rel.id;
+      switchTab('build');
+      const sections = document.querySelectorAll(".sidebar-section");
+      if (sections[1]) sections[1].classList.add("active");
     });
   }
 }
