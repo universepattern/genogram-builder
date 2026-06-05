@@ -79,6 +79,9 @@ function init() {
   
   // Set default view transform
   resetView();
+  
+  // Set initial legend state
+  updateLegend();
 }
 
 // ----------------------------------------------------
@@ -289,6 +292,7 @@ function setupEventListeners() {
     styleColBtn.classList.remove("active");
     svg.classList.add("bw-mode");
     render();
+    updateLegend();
   });
 
   styleColBtn.addEventListener("click", () => {
@@ -297,6 +301,7 @@ function setupEventListeners() {
     styleColBtn.classList.add("active");
     svg.classList.remove("bw-mode");
     render();
+    updateLegend();
   });
 
   // Export Dropdown Trigger
@@ -552,6 +557,18 @@ function setupEventListeners() {
       }
     });
   });
+
+  // Show/hide Death Year based on Deceased checkbox (Add form)
+  const pDeceased = document.getElementById("pDeceased");
+  const pDeathYearField = document.getElementById("pDeathYearField");
+  if (pDeceased && pDeathYearField) {
+    pDeceased.addEventListener("change", () => {
+      pDeathYearField.style.display = pDeceased.checked ? "block" : "none";
+      if (!pDeceased.checked) {
+        document.getElementById("pDeath").value = "";
+      }
+    });
+  }
 
   // Add Partnership Link Form Submit
   addRelationshipForm.addEventListener("submit", (e) => {
@@ -1201,15 +1218,16 @@ function showSelectionDetails() {
             <label>Birth Year</label>
             <input type="number" id="editBirth" value="${p.birthYear || ''}" class="cream-input">
           </div>
-          <div class="form-field">
-            <label>Death Year</label>
-            <input type="number" id="editDeath" value="${p.deathYear || ''}" class="cream-input">
-          </div>
         </div>
         <div class="form-row-checkboxes-inline" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
           <div class="form-row-checkbox">
             <input type="checkbox" id="editDeceased" ${p.isDeceased ? 'checked' : ''} class="cream-checkbox">
             <label for="editDeceased" class="checkbox-label">Deceased</label>
+          </div>
+          <!-- Death year — only visible when deceased -->
+          <div class="form-field" id="editDeathRow" style="display:${p.isDeceased ? 'block' : 'none'}; padding-left: 22px;">
+            <label for="editDeath">Year of Death</label>
+            <input type="number" id="editDeath" value="${p.deathYear || ''}" class="cream-input">
           </div>
           <div class="form-row-checkbox">
             <input type="checkbox" id="editProband" ${p.isProband ? 'checked' : ''} class="cream-checkbox">
@@ -1273,6 +1291,18 @@ function showSelectionDetails() {
         deletePerson(p.id);
       }
     });
+
+    // Toggle Death Year visibility in edit panel
+    const editDeceasedCb = document.getElementById("editDeceased");
+    const editDeathRow = document.getElementById("editDeathRow");
+    if (editDeceasedCb && editDeathRow) {
+      editDeceasedCb.addEventListener("change", () => {
+        editDeathRow.style.display = editDeceasedCb.checked ? "block" : "none";
+        if (!editDeceasedCb.checked) {
+          document.getElementById("editDeath").value = "";
+        }
+      });
+    }
 
     // Checkbox toggling inside edit panel
     document.querySelectorAll(".edit-trait-cb").forEach(cb => {
