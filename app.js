@@ -1595,8 +1595,8 @@ function runAutoLayout() {
   
   // 3. Position people horizontally and vertically
   const startY = 100;
-  const genSpacingY = 180;
-  const nodeSpacingX = 160;
+  const genSpacingY = 220;   // increased: dropY is now node.y+75, labels at +36/+51
+  const nodeSpacingX = 170;
   
   const containerRect = canvasContainer.getBoundingClientRect();
   const centerX = containerRect.width / 2;
@@ -1653,8 +1653,9 @@ function render() {
     const Bx = pB.x;
     const By = pB.y + 20;
     
-    // Horizontal step drop level
-    const dropY = Math.max(pA.y, pB.y) + 50;
+    // Drop line must clear name+date labels below the shape.
+    // Shape bottom = node.y+20, name at +36, date at +51 → drop at +75 clears both.
+    const dropY = Math.max(pA.y, pB.y) + 75;
     
     // Draw connecting path (drops from A, runs horizontally at dropY, goes up to B)
     const linePath = `M ${Ax} ${Ay} L ${Ax} ${dropY} L ${Bx} ${dropY} L ${Bx} ${By}`;
@@ -1934,9 +1935,9 @@ function render() {
         pointer-events="none">${p.age}</text>`;
     }
 
-    // --- Name label: bold, directly below shape ---
-    const displayName = p.name.length > 18 ? p.name.substring(0, 16) + '…' : p.name;
-    const nameY = p.gender === 'P' ? 32 : 30;   // pregnancy triangle is shorter
+    // --- Name label: bold, below shape, safely above the drop line (at +75) ---
+    const displayName = p.name.length > 18 ? p.name.substring(0, 16) + '\u2026' : p.name;
+    const nameY = p.gender === 'P' ? 34 : 36;
 
     const nameHtml = `<text
       x="0" y="${nameY}"
@@ -1952,12 +1953,12 @@ function render() {
     const birthStr = p.birthYear ? String(p.birthYear) : '';
     const deathStr = p.deathYear ? String(p.deathYear) : (p.isDeceased ? '?' : '');
     let dateText = '';
-    if (birthStr && deathStr)       dateText = `(${birthStr}–${deathStr})`;
+    if (birthStr && deathStr)       dateText = `(${birthStr}\u2013${deathStr})`;
     else if (birthStr)              dateText = `(${birthStr})`;
     else if (deathStr)              dateText = `(d. ${deathStr})`;
 
     if (dateText) {
-      const dateY = nameY + 13;
+      const dateY = nameY + 14;
       dateHtml = `<text
         x="0" y="${dateY}"
         text-anchor="middle"
