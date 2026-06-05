@@ -67,7 +67,8 @@ const ALL_TRAITS = [
   { id: "substance_abuse", name: "Substance Abuse" },
   { id: "asthma", name: "Asthma" },
   { id: "hemophilia", name: "Hemophilia (Affected)" },
-  { id: "hemophilia_carrier", name: "Hemophilia (Carrier)" }
+  { id: "hemophilia_carrier", name: "Hemophilia (Carrier)" },
+  { id: "prediabetic", name: "Prediabetic" }
 ];
 
 // Initialize Application
@@ -1793,7 +1794,8 @@ function render() {
       substance_abuse: "Abuse",
       asthma: "Asthma",
       hemophilia: "Hemophilia",
-      hemophilia_carrier: "Carrier"
+      hemophilia_carrier: "Carrier",
+      prediabetic: "Prediabetic"
     };
     const traitNames = allActiveTraits.map(tId => SHORT_TRAIT_NAMES[tId] || tId);
     const traitsLabel = traitNames.join(", ");

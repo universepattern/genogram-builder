@@ -219,6 +219,9 @@
                                         <label class="trait-chip" data-trait="asthma">
                                             <input type="checkbox" value="asthma" class="trait-cb"> Asthma
                                         </label>
+                                        <label class="trait-chip" data-trait="prediabetic">
+                                            <input type="checkbox" value="prediabetic" class="trait-cb"> Prediabetic
+                                        </label>
                                     </div>
                                 </div>
                                 <div class="form-field" id="relationFieldContainer" style="display: none; margin-top: 8px; margin-bottom: 8px;">
@@ -383,6 +386,10 @@
                             <pattern id="pat_hemophilia" width="6" height="6" patternUnits="userSpaceOnUse">
                                 <line x1="0" y1="0" x2="6" y2="6" stroke="#000" stroke-width="1.5" />
                             </pattern>
+                            <!-- Pattern 9: Prediabetic (Sparse Dots) -->
+                            <pattern id="pat_prediabetic" width="10" height="10" patternUnits="userSpaceOnUse">
+                                <circle cx="5" cy="5" r="1.5" fill="#000" />
+                            </pattern>
 
                             <!-- Drop Shadow for Nodes -->
                             <filter id="shadowFilter" x="-20%" y="-20%" width="140%" height="140%">
@@ -474,6 +481,7 @@
                             <span><span class="legend-color-box cond-substance"></span> Substance</span>
                             <span><span class="legend-color-box cond-asthma"></span> Asthma</span>
                             <span><span class="legend-color-box cond-hemo"></span> Hemophilia</span>
+                            <span><span class="legend-color-box cond-prediabetic"></span> Prediabetic</span>
                         </div>
                     </div>
                 </div>

@@ -30,6 +30,7 @@
     --trait-asthma: #d6874b;
     --trait-hemophilia: #b84f4f;
     --trait-hemophilia_carrier: #8b6db8;
+    --trait-prediabetic: #e3c16f;
     
     /* Fonts */
     --font-serif: 'Playfair Display', Georgia, serif;
@@ -1069,6 +1070,7 @@ body {
 .cond-substance { background-color: var(--trait-substance); }
 .cond-asthma { background-color: var(--trait-asthma); }
 .cond-hemo { background-color: var(--trait-hemophilia); }
+.cond-prediabetic { background-color: var(--trait-prediabetic); }
 
 /* SVG Node Classes */
 .genogram-node {
@@ -1178,6 +1180,7 @@ body {
 .bw-mode .cond-substance { background: url(#pat_substance_abuse); }
 .bw-mode .cond-asthma { background: url(#pat_asthma); }
 .bw-mode .cond-hemo { background: url(#pat_hemophilia); }
+.bw-mode .cond-prediabetic { background: url(#pat_prediabetic); }
 
 /* responsive adjustments */
 @media (max-height: 800px) {
