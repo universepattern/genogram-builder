@@ -395,6 +395,22 @@ function setupEventListeners() {
   window.addEventListener("mouseup", onMouseUp);
   svg.addEventListener("wheel", onWheel, { passive: false });
 
+  // Mobile View Toggle FAB event handler
+  const mobileToggleBtn = document.getElementById("mobileToggleBtn");
+  const mainLayout = document.querySelector(".main-layout");
+  if (mobileToggleBtn && mainLayout) {
+    mobileToggleBtn.addEventListener("click", () => {
+      mainLayout.classList.toggle("show-sidebar-mobile");
+      if (mainLayout.classList.contains("show-sidebar-mobile")) {
+        mobileToggleBtn.querySelector(".icon").textContent = "👁️";
+        mobileToggleBtn.querySelector(".label").textContent = "View Canvas";
+      } else {
+        mobileToggleBtn.querySelector(".icon").textContent = "✍️";
+        mobileToggleBtn.querySelector(".label").textContent = "Edit Data";
+      }
+    });
+  }
+
   // Exporters hookups (mapped to header dropdown menu buttons)
   document.getElementById("exportPngBtn").addEventListener("click", () => Exporter.exportImage(svg, state.people, state.isColorMode, 'png'));
   document.getElementById("exportJpegBtn").addEventListener("click", () => Exporter.exportImage(svg, state.people, state.isColorMode, 'jpeg'));
@@ -651,6 +667,17 @@ function selectElement(type, id) {
   if (editBadge) editBadge.style.display = "inline-block";
   
   showSelectionDetails();
+
+  // Auto switch mobile view to show forms
+  const mainLayout = document.querySelector(".main-layout");
+  const mobileToggleBtn = document.getElementById("mobileToggleBtn");
+  if (mainLayout && window.innerWidth <= 768) {
+    mainLayout.classList.add("show-sidebar-mobile");
+    if (mobileToggleBtn) {
+      mobileToggleBtn.querySelector(".icon").textContent = "👁️";
+      mobileToggleBtn.querySelector(".label").textContent = "View Canvas";
+    }
+  }
 }
 
 function clearSelection() {
