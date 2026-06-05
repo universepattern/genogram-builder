@@ -1771,14 +1771,6 @@ function render() {
     const isParent = state.relationships.some(r => r.personA === p.id || r.personB === p.id);
     const isChild = state.children.some(c => c.childId === p.id);
     
-    let nameY = 32;
-    let detailsY = 44;
-    
-    if (isParent && !isChild) {
-      nameY = -32;
-      detailsY = -44;
-    }
-    
     // Compile label texts
     let detailsLabel = "";
     if (p.age) detailsLabel += p.age;
@@ -1790,6 +1782,61 @@ function render() {
       detailsLabel += `${birthStr}–${deathStr}`;
     }
     
+    // Compile diseases/traits names
+    const allActiveTraits = p.traits || [];
+    const SHORT_TRAIT_NAMES = {
+      heart_disease: "Heart",
+      diabetes: "Diabetes",
+      hypertension: "Hypertension",
+      cancer: "Cancer",
+      depression: "Depression",
+      substance_abuse: "Abuse",
+      asthma: "Asthma",
+      hemophilia: "Hemophilia",
+      hemophilia_carrier: "Carrier"
+    };
+    const traitNames = allActiveTraits.map(tId => SHORT_TRAIT_NAMES[tId] || tId);
+    const traitsLabel = traitNames.join(", ");
+    const hasTraits = allActiveTraits.length > 0;
+    
+    // Determine card positioning (above vs below node shape)
+    const isBelow = !(isParent && !isChild);
+    let cardHtml = "";
+    
+    const displayName = p.name.length > 16 ? p.name.substring(0, 14) + "..." : p.name;
+    
+    if (isBelow) {
+      const rectH = hasTraits ? 42 : 30;
+      const rectY = 24;
+      const nameYPos = 36;
+      const detailsYPos = 48;
+      const traitsYPos = 60;
+      
+      cardHtml = `
+        <rect class="node-label-bg" x="-55" y="${rectY}" width="110" height="${rectH}" />
+        <text class="node-label-name" y="${nameYPos}">${displayName}</text>
+        <text class="node-label-details" y="${detailsYPos}">${detailsLabel}</text>
+      `;
+      if (hasTraits) {
+        cardHtml += `<text class="node-label-traits" y="${traitsYPos}">${traitsLabel}</text>`;
+      }
+    } else {
+      const rectH = hasTraits ? 42 : 30;
+      const rectY = -24 - rectH;
+      const nameYPos = rectY + 12;
+      const detailsYPos = rectY + 24;
+      const traitsYPos = rectY + 36;
+      
+      cardHtml = `
+        <rect class="node-label-bg" x="-55" y="${rectY}" width="110" height="${rectH}" />
+        <text class="node-label-name" y="${nameYPos}">${displayName}</text>
+        <text class="node-label-details" y="${detailsYPos}">${detailsLabel}</text>
+      `;
+      if (hasTraits) {
+        cardHtml += `<text class="node-label-traits" y="${traitsYPos}">${traitsLabel}</text>`;
+      }
+    }
+    
     // Build HTML block inside the node group
     gNode.innerHTML = `
       ${shapeHtml}
@@ -1798,14 +1845,7 @@ function render() {
       ${adoptedHtml}
       ${deceasedHtml}
       ${carrierHtml}
-      
-      <!-- Label Name (White stroke shadow underneath for high legibility over lines) -->
-      <text class="node-label-name" y="${nameY}" stroke="${state.isColorMode ? '#fbfaf7' : '#ffffff'}" stroke-width="7" paint-order="stroke fill" stroke-linejoin="round">${p.name}</text>
-      <text class="node-label-name" y="${nameY}">${p.name}</text>
-      
-      <!-- Label Details (Age, Years) -->
-      <text class="node-label-details" y="${detailsY}" stroke="${state.isColorMode ? '#fbfaf7' : '#ffffff'}" stroke-width="7" paint-order="stroke fill" stroke-linejoin="round">${detailsLabel}</text>
-      <text class="node-label-details" y="${detailsY}">${detailsLabel}</text>
+      ${cardHtml}
     `;
     
     peopleGroup.appendChild(gNode);
