@@ -601,6 +601,28 @@ function getSvgCoords(e) {
 // ELEMENT SELECTION & LIVE DETAIL EDITING
 // ----------------------------------------------------
 
+// Tab Switching Utility
+function switchTab(tabName) {
+  const tabBuildBtn = document.getElementById("tabBuildBtn");
+  const tabEditBtn = document.getElementById("tabEditBtn");
+  const buildPanel = document.getElementById("buildPanel");
+  const editPanel = document.getElementById("editPanel");
+  
+  if (!tabBuildBtn || !tabEditBtn) return;
+  
+  if (tabName === 'build') {
+    tabBuildBtn.classList.add("active");
+    tabEditBtn.classList.remove("active");
+    buildPanel.classList.add("active");
+    editPanel.classList.remove("active");
+  } else if (tabName === 'edit') {
+    tabBuildBtn.classList.remove("active");
+    tabEditBtn.classList.add("active");
+    buildPanel.classList.remove("active");
+    editPanel.classList.add("active");
+  }
+}
+
 function selectElement(type, id) {
   state.selectedId = id;
   state.selectedType = type;
@@ -619,6 +641,11 @@ function selectElement(type, id) {
   selectionStatus.textContent = type === 'person' ? 'Family Member Selected' : 'Connection Selected';
   selectionStatus.className = "selection-indicator active";
   
+  // Auto switch sidebar to edit tab & show selection indicator dot
+  switchTab('edit');
+  const editBadge = document.getElementById("tabEditBadge");
+  if (editBadge) editBadge.style.display = "inline-block";
+  
   showSelectionDetails();
 }
 
@@ -633,6 +660,11 @@ function clearSelection() {
   selectionStatus.textContent = "None Selected";
   selectionStatus.className = "selection-indicator offline";
   selectionContent.innerHTML = `<p class="cream-placeholder">Click a person or connection line in the workspace to view or modify their details here.</p>`;
+  
+  // Auto switch sidebar back to build data tab & hide selection dot
+  switchTab('build');
+  const editBadge = document.getElementById("tabEditBadge");
+  if (editBadge) editBadge.style.display = "none";
 }
 
 function showSelectionDetails() {

@@ -183,6 +183,67 @@ body {
     border-radius: 10px;
 }
 
+/* SIDEBAR TABS */
+.sidebar-tabs {
+    display: flex;
+    background-color: rgba(130, 111, 86, 0.04);
+    border-bottom: 1px solid var(--border-light);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.sidebar-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 10px;
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.sidebar-tab:hover {
+    color: var(--text-main);
+    background-color: rgba(130, 111, 86, 0.02);
+}
+
+.sidebar-tab.active {
+    color: var(--primary-accent-hover);
+    background-color: var(--bg-panel);
+    border-bottom-color: var(--primary-accent);
+}
+
+.tab-panel {
+    display: none;
+    width: 100%;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+.tab-badge {
+    color: var(--secondary-accent);
+    font-size: 8px;
+    line-height: 1;
+    animation: tabPulse 1.5s infinite;
+}
+
+@keyframes tabPulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+}
+
 .sidebar-section {
     border-bottom: 1px solid var(--border-light);
     transition: all 0.3s ease;
@@ -778,101 +839,73 @@ body {
 .export-menu-item .bullet.pdf { color: #c97171; }
 .export-menu-item .bullet.word { color: #5d99c6; }
 
-/* FLOATING COLLAPSIBLE LEGEND OVERLAY */
-.floating-legend-overlay {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    background-color: rgba(255, 255, 255, 0.96);
-    border: 1px solid var(--border-light);
-    border-radius: 10px;
-    box-shadow: var(--shadow-medium);
-    width: 490px;
-    max-width: calc(100% - 40px);
-    z-index: 99;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    overflow: hidden;
-}
-
-.floating-legend-overlay.collapsed {
-    width: 180px;
-    background-color: rgba(250, 247, 240, 0.95);
-}
-
-.legend-header {
-    background-color: rgba(130, 111, 86, 0.04);
-    padding: 10px 16px;
+/* WORKSPACE STATIC BOTTOM LEGEND BAR */
+.workspace-legend-bar {
+    background-color: var(--bg-panel);
+    border-top: 1px solid var(--border-light);
     display: flex;
-    justify-content: space-between;
+    gap: 30px;
+    padding: 10px 24px;
+    height: 75px;
+    font-family: var(--font-sans);
     align-items: center;
-    cursor: pointer;
-    user-select: none;
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.3s;
+    justify-content: space-between;
+    z-index: 5;
+    flex-shrink: 0; /* Keep it fixed height */
 }
 
-.floating-legend-overlay:not(.collapsed) .legend-header {
-    border-bottom-color: var(--border-light);
-    background-color: rgba(130, 111, 86, 0.07);
+.legend-bar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
 }
 
-.legend-header-title {
-    font-family: var(--font-serif);
-    font-size: 12px;
+.legend-bar-section:nth-child(1) {
+    flex: 1.4; /* Give shapes section more space */
+}
+
+.legend-bar-section .section-title {
+    font-size: 10px;
     font-weight: 700;
-    color: var(--text-muted);
-    letter-spacing: 0.5px;
     text-transform: uppercase;
-}
-
-.legend-header .toggle-icon {
-    font-size: 10px;
     color: var(--text-muted);
-    transition: transform 0.3s;
+    letter-spacing: 0.6px;
+    border-bottom: 1px dashed var(--border-light);
+    padding-bottom: 2px;
+    margin-bottom: 2px;
 }
 
-.floating-legend-overlay.collapsed .legend-header .toggle-icon {
-    transform: rotate(180deg);
+.legend-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--text-main);
 }
 
-.legend-body {
-    padding: 16px;
-    transition: opacity 0.2s;
+.legend-row.font-dense {
+    gap: 8px; /* Denser grid for traits to fit comfortably */
 }
 
-.floating-legend-overlay.collapsed .legend-body {
-    display: none;
-    opacity: 0;
-}
-
-.legend-columns-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-}
-
-.legend-column h4 {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    letter-spacing: 0.3px;
-    border-bottom: 1px solid var(--border-light);
-    padding-bottom: 3px;
+.legend-row span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
 }
 
 /* FLOATING HELPER GUIDE */
 .floating-help-guide {
     position: absolute;
-    bottom: 20px;
-    right: 20px;
+    bottom: 15px;
+    right: 15px;
     background-color: rgba(250, 247, 240, 0.93);
     border: 1px solid var(--border-light);
     padding: 6px 14px;
     border-radius: 30px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
     color: var(--text-muted);
     pointer-events: none;

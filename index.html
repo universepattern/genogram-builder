@@ -70,162 +70,179 @@
         </header>
 
         <!-- MAIN LAYOUT -->
-        <main class="main-layout">
-            <!-- SIDEBAR -->
+        <main class="ma            <!-- SIDEBAR -->
             <aside class="sidebar">
-                <!-- ACCORDION SECTION 1: INDIVIDUALS -->
-                <div class="sidebar-section active">
-                    <div class="section-header">
-                        <h2>1. Family Members</h2>
-                        <span class="badge" id="peopleCountBadge">0</span>
-                    </div>
-                    <div class="section-content">
-                        <!-- Add Person Form -->
-                        <form id="addPersonForm" class="form-container">
-                            <div class="form-row">
-                                <div class="form-field full-width">
-                                    <label for="pName">Full Name</label>
-                                    <input type="text" id="pName" placeholder="e.g. John Doe" required class="cream-input">
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-field">
-                                    <label for="pGender">Gender</label>
-                                    <select id="pGender" class="cream-select">
-                                        <option value="M">Male (Square)</option>
-                                        <option value="F">Female (Circle)</option>
-                                        <option value="X">Other / Unknown (Diamond)</option>
-                                        <option value="P">Pregnancy (Triangle)</option>
-                                    </select>
-                                </div>
-                                <div class="form-field">
-                                    <label for="pAge">Age (or Est.)</label>
-                                    <input type="number" id="pAge" placeholder="e.g. 45" class="cream-input" min="0" max="150">
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-field">
-                                    <label for="pBirth">Birth Year</label>
-                                    <input type="number" id="pBirth" placeholder="YYYY" class="cream-input" min="1800" max="2100">
-                                </div>
-                                <div class="form-field">
-                                    <label for="pDeath">Death Year</label>
-                                    <input type="number" id="pDeath" placeholder="YYYY" class="cream-input" min="1800" max="2100">
-                                </div>
-                            </div>
-                            <div class="form-row-checkboxes-inline" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
-                                <div class="form-row-checkbox">
-                                    <input type="checkbox" id="pDeceased" class="cream-checkbox">
-                                    <label for="pDeceased" class="checkbox-label">Deceased (Mark with X)</label>
-                                </div>
-                                <div class="form-row-checkbox">
-                                    <input type="checkbox" id="pProband" class="cream-checkbox">
-                                    <label for="pProband" class="checkbox-label">Index Person / Proband (Double Line)</label>
-                                </div>
-                                <div class="form-row-checkbox">
-                                    <input type="checkbox" id="pAdopted" class="cream-checkbox">
-                                    <label for="pAdopted" class="checkbox-label">Adopted Status (Shape Brackets)</label>
-                                </div>
-                            </div>
-                            <div class="form-field">
-                                <label>Medical Traits / Conditions</label>
-                                <div class="traits-checkbox-grid">
-                                    <label class="trait-chip" data-trait="heart_disease">
-                                        <input type="checkbox" value="heart_disease" class="trait-cb"> Heart Disease
-                                    </label>
-                                    <label class="trait-chip" data-trait="diabetes">
-                                        <input type="checkbox" value="diabetes" class="trait-cb"> Diabetes
-                                    </label>
-                                    <label class="trait-chip" data-trait="hypertension">
-                                        <input type="checkbox" value="hypertension" class="trait-cb"> Hypertension
-                                    </label>
-                                    <label class="trait-chip" data-trait="cancer">
-                                        <input type="checkbox" value="cancer" class="trait-cb"> Cancer
-                                    </label>
-                                    <label class="trait-chip" data-trait="depression">
-                                        <input type="checkbox" value="depression" class="trait-cb"> Depression / Anxiety
-                                    </label>
-                                    <label class="trait-chip" data-trait="substance_abuse">
-                                        <input type="checkbox" value="substance_abuse" class="trait-cb"> Substance Abuse
-                                    </label>
-                                    <label class="trait-chip" data-trait="asthma">
-                                        <input type="checkbox" value="asthma" class="trait-cb"> Asthma
-                                    </label>
-                                </div>
-                            </div>
-                            <button type="submit" class="primary-btn">Add Family Member</button>
-                        </form>
-                    </div>
+                <!-- Tabs navigation headers -->
+                <div class="sidebar-tabs">
+                    <button id="tabBuildBtn" class="sidebar-tab active" title="Add members and relationships">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                        <span>Add Data</span>
+                    </button>
+                    <button id="tabEditBtn" class="sidebar-tab" title="Edit details of selected item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/></svg>
+                        <span>Edit Selected</span>
+                        <span id="tabEditBadge" class="tab-badge" style="display: none;">●</span>
+                    </button>
                 </div>
 
-                <!-- ACCORDION SECTION 2: RELATIONSHIPS -->
-                <div class="sidebar-section">
-                    <div class="section-header">
-                        <h2>2. Relationships & Children</h2>
-                    </div>
-                    <div class="section-content">
-                        <!-- Add Partner Relationship Form -->
-                        <div class="sub-section">
-                            <h3>Spouse / Partner Link</h3>
-                            <form id="addRelationshipForm" class="form-container">
-                                <div class="form-field">
-                                    <label for="relPartnerA">Partner A</label>
-                                    <select id="relPartnerA" required class="cream-select">
-                                        <option value="" disabled selected>Select person...</option>
-                                    </select>
-                                </div>
-                                <div class="form-field">
-                                    <label for="relPartnerB">Partner B</label>
-                                    <select id="relPartnerB" required class="cream-select">
-                                        <option value="" disabled selected>Select person...</option>
-                                    </select>
-                                </div>
-                                <div class="form-field">
-                                    <label for="relType">Relationship Type</label>
-                                    <select id="relType" class="cream-select">
-                                        <option value="married">Married (Solid Line)</option>
-                                        <option value="divorced">Divorced (Double Slashed Line)</option>
-                                        <option value="separated">Separated (Single Slashed Line)</option>
-                                        <option value="cohabitation">Cohabitation / Dating (Dashed Line)</option>
-                                    </select>
-                                </div>
-                                <button type="submit" class="secondary-btn">Connect Partners</button>
-                            </form>
+                <!-- Tab Panel 1: Build Tree (Contains Add Forms) -->
+                <div id="buildPanel" class="tab-panel active">
+                    <!-- ACCORDION SECTION 1: INDIVIDUALS -->
+                    <div class="sidebar-section active">
+                        <div class="section-header">
+                            <h2>1. Family Members</h2>
+                            <span class="badge" id="peopleCountBadge">0</span>
                         </div>
-
-                        <!-- Add Child Form -->
-                        <div class="sub-section">
-                            <h3>Add Child to Parents</h3>
-                            <form id="addChildForm" class="form-container">
-                                <div class="form-field">
-                                    <label for="childSelect">Select Child</label>
-                                    <select id="childSelect" required class="cream-select">
-                                        <option value="" disabled selected>Select child...</option>
-                                    </select>
+                        <div class="section-content">
+                            <!-- Add Person Form -->
+                            <form id="addPersonForm" class="form-container">
+                                <div class="form-row">
+                                    <div class="form-field full-width">
+                                        <label for="pName">Full Name</label>
+                                        <input type="text" id="pName" placeholder="e.g. John Doe" required class="cream-input">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-field">
+                                        <label for="pGender">Gender</label>
+                                        <select id="pGender" class="cream-select">
+                                            <option value="M">Male (Square)</option>
+                                            <option value="F">Female (Circle)</option>
+                                            <option value="X">Other / Unknown (Diamond)</option>
+                                            <option value="P">Pregnancy (Triangle)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="pAge">Age (or Est.)</label>
+                                        <input type="number" id="pAge" placeholder="e.g. 45" class="cream-input" min="0" max="150">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-field">
+                                        <label for="pBirth">Birth Year</label>
+                                        <input type="number" id="pBirth" placeholder="YYYY" class="cream-input" min="1800" max="2100">
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="pDeath">Death Year</label>
+                                        <input type="number" id="pDeath" placeholder="YYYY" class="cream-input" min="1800" max="2100">
+                                    </div>
+                                </div>
+                                <div class="form-row-checkboxes-inline" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+                                    <div class="form-row-checkbox">
+                                        <input type="checkbox" id="pDeceased" class="cream-checkbox">
+                                        <label for="pDeceased" class="checkbox-label">Deceased (Mark with X)</label>
+                                    </div>
+                                    <div class="form-row-checkbox">
+                                        <input type="checkbox" id="pProband" class="cream-checkbox">
+                                        <label for="pProband" class="checkbox-label">Index Person / Proband (Double Line)</label>
+                                    </div>
+                                    <div class="form-row-checkbox">
+                                        <input type="checkbox" id="pAdopted" class="cream-checkbox">
+                                        <label for="pAdopted" class="checkbox-label">Adopted Status (Shape Brackets)</label>
+                                    </div>
                                 </div>
                                 <div class="form-field">
-                                    <label for="parentLinkSelect">Select Parent Pair / Single Parent</label>
-                                    <select id="parentLinkSelect" required class="cream-select">
-                                        <option value="" disabled selected>Select parents...</option>
-                                    </select>
+                                    <label>Medical Traits / Conditions</label>
+                                    <div class="traits-checkbox-grid">
+                                        <label class="trait-chip" data-trait="heart_disease">
+                                            <input type="checkbox" value="heart_disease" class="trait-cb"> Heart Disease
+                                        </label>
+                                        <label class="trait-chip" data-trait="diabetes">
+                                            <input type="checkbox" value="diabetes" class="trait-cb"> Diabetes
+                                        </label>
+                                        <label class="trait-chip" data-trait="hypertension">
+                                            <input type="checkbox" value="hypertension" class="trait-cb"> Hypertension
+                                        </label>
+                                        <label class="trait-chip" data-trait="cancer">
+                                            <input type="checkbox" value="cancer" class="trait-cb"> Cancer
+                                        </label>
+                                        <label class="trait-chip" data-trait="depression">
+                                            <input type="checkbox" value="depression" class="trait-cb"> Depression / Anxiety
+                                        </label>
+                                        <label class="trait-chip" data-trait="substance_abuse">
+                                            <input type="checkbox" value="substance_abuse" class="trait-cb"> Substance Abuse
+                                        </label>
+                                        <label class="trait-chip" data-trait="asthma">
+                                            <input type="checkbox" value="asthma" class="trait-cb"> Asthma
+                                        </label>
+                                    </div>
                                 </div>
-                                <button type="submit" class="secondary-btn">Link Child</button>
+                                <button type="submit" class="primary-btn">Add Family Member</button>
                             </form>
                         </div>
                     </div>
+
+                    <!-- ACCORDION SECTION 2: RELATIONSHIPS -->
+                    <div class="sidebar-section">
+                        <div class="section-header">
+                            <h2>2. Relationships & Children</h2>
+                        </div>
+                        <div class="section-content">
+                            <!-- Add Partner Relationship Form -->
+                            <div class="sub-section">
+                                <h3>Spouse / Partner Link</h3>
+                                <form id="addRelationshipForm" class="form-container">
+                                    <div class="form-field">
+                                        <label for="relPartnerA">Partner A</label>
+                                        <select id="relPartnerA" required class="cream-select">
+                                            <option value="" disabled selected>Select person...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="relPartnerB">Partner B</label>
+                                        <select id="relPartnerB" required class="cream-select">
+                                            <option value="" disabled selected>Select person...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="relType">Relationship Type</label>
+                                        <select id="relType" class="cream-select">
+                                            <option value="married">Married (Solid Line)</option>
+                                            <option value="divorced">Divorced (Double Slashed Line)</option>
+                                            <option value="separated">Separated (Single Slashed Line)</option>
+                                            <option value="cohabitation">Cohabitation / Dating (Dashed Line)</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="secondary-btn">Connect Partners</button>
+                                </form>
+                            </div>
+
+                            <!-- Add Child Form -->
+                            <div class="sub-section">
+                                <h3>Add Child to Parents</h3>
+                                <form id="addChildForm" class="form-container">
+                                    <div class="form-field">
+                                        <label for="childSelect">Select Child</label>
+                                        <select id="childSelect" required class="cream-select">
+                                            <option value="" disabled selected>Select child...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="parentLinkSelect">Select Parent Pair / Single Parent</label>
+                                        <select id="parentLinkSelect" required class="cream-select">
+                                            <option value="" disabled selected>Select parents...</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="secondary-btn">Link Child</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- ACCORDION SECTION 3: EDIT SELECTION -->
-                <div id="selectionPanel" class="sidebar-section active">
-                    <div class="section-header">
-                        <h2>3. Selected Element</h2>
-                        <span class="selection-indicator offline" id="selectionStatus">None Selected</span>
-                    </div>
-                    <div class="section-content" id="selectionContent">
-                        <p class="cream-placeholder">Click a person or connection line in the workspace to view or modify their details here.</p>
+                <!-- Tab Panel 2: Edit Selected Element -->
+                <div id="editPanel" class="tab-panel">
+                    <div id="selectionPanel" class="sidebar-section active">
+                        <div class="section-header">
+                            <h2>✏️ Mapped Properties</h2>
+                            <span class="selection-indicator offline" id="selectionStatus">None Selected</span>
+                        </div>
+                        <div class="section-content" id="selectionContent">
+                            <p class="cream-placeholder">Click a person or connection line in the workspace to view or modify their details here.</p>
+                        </div>
                     </div>
                 </div>
-                      <!-- WORKSPACE CANVAS -->
+            </aside>                      <!-- WORKSPACE CANVAS -->
             <section class="canvas-area">
                 <!-- Canvas Control Bar -->
                 <div class="canvas-toolbar">
@@ -330,109 +347,50 @@
                         </div>
                     </div>
 
-                    <!-- Collapsible Floating Legend -->
-                    <div id="floatingLegend" class="floating-legend-overlay collapsed">
-                        <div id="legendToggle" class="legend-header">
-                            <span class="legend-header-title">📖 Genogram Legend</span>
-                            <span id="legendToggleIcon" class="toggle-icon">▲</span>
-                        </div>
-                        <div class="legend-body">
-                            <div class="legend-columns-container">
-                                <div class="legend-column">
-                                    <h4>Symbols</h4>
-                                    <div class="legend-item">
-                                        <span class="legend-symbol sym-male"></span>
-                                        <span>Male</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <span class="legend-symbol sym-female"></span>
-                                        <span>Female</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <span class="legend-symbol sym-other"></span>
-                                        <span>Other / Unknown</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <span class="legend-symbol sym-pregnancy"></span>
-                                        <span>Pregnancy (Triangle)</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <span class="legend-symbol sym-deceased"></span>
-                                        <span>Deceased (Cross)</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <span class="legend-symbol sym-proband"></span>
-                                        <span>Index / Proband</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <span class="legend-symbol sym-adopted"></span>
-                                        <span>Adopted [ ]</span>
-                                    </div>
-                                </div>
-
-                                <div class="legend-column">
-                                    <h4>Relationships</h4>
-                                    <div class="legend-item">
-                                        <span class="legend-line line-married"></span>
-                                        <span>Married</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <span class="legend-line line-cohab"></span>
-                                        <span>Dating/Cohab</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <span class="legend-line line-separated"></span>
-                                        <span>Separated</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <span class="legend-line line-divorced"></span>
-                                        <span>Divorced</span>
-                                    </div>
-                                </div>
-
-                                <div class="legend-column list-conditions">
-                                    <h4>Conditions</h4>
-                                    <div class="legend-item flex-item">
-                                        <span class="legend-color-box cond-heart"></span>
-                                        <span class="cond-text">Heart Disease</span>
-                                    </div>
-                                    <div class="legend-item flex-item">
-                                        <span class="legend-color-box cond-diabetes"></span>
-                                        <span class="cond-text">Diabetes</span>
-                                    </div>
-                                    <div class="legend-item flex-item">
-                                        <span class="legend-color-box cond-hyper"></span>
-                                        <span class="cond-text">Hypertension</span>
-                                    </div>
-                                    <div class="legend-item flex-item">
-                                        <span class="legend-color-box cond-cancer"></span>
-                                        <span class="cond-text">Cancer</span>
-                                    </div>
-                                </div>
-
-                                <div class="legend-column list-conditions">
-                                    <h4>&nbsp;</h4>
-                                    <div class="legend-item flex-item">
-                                        <span class="legend-color-box cond-depression"></span>
-                                        <span class="cond-text">Depression/Anxiety</span>
-                                    </div>
-                                    <div class="legend-item flex-item">
-                                        <span class="legend-color-box cond-substance"></span>
-                                        <span class="cond-text">Substance Abuse</span>
-                                    </div>
-                                    <div class="legend-item flex-item">
-                                        <span class="legend-color-box cond-asthma"></span>
-                                        <span class="cond-text">Asthma</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Floating Helper Guide (Bottom Right) -->
                     <div class="floating-help-guide">
                         <span>🖱️ Middle-drag/Space-drag to Pan | Scroll to Zoom | Drag shapes to arrange</span>
                     </div>
+                </div>
+
+                <!-- Horizontal Bottom Legend Bar (Sits statically under the canvas container) -->
+                <div class="workspace-legend-bar">
+                    <div class="legend-bar-section">
+                        <span class="section-title">Standard Shapes & Symbols</span>
+                        <div class="legend-row">
+                            <span><span class="legend-symbol sym-male"></span> Male</span>
+                            <span><span class="legend-symbol sym-female"></span> Female</span>
+                            <span><span class="legend-symbol sym-other"></span> Other</span>
+                            <span><span class="legend-symbol sym-pregnancy"></span> Pregnancy</span>
+                            <span><span class="legend-symbol sym-deceased"></span> Deceased</span>
+                            <span><span class="legend-symbol sym-proband"></span> Proband</span>
+                            <span><span class="legend-symbol sym-adopted"></span> Adopted</span>
+                        </div>
+                    </div>
+                    
+                    <div class="legend-bar-section">
+                        <span class="section-title">Relationships</span>
+                        <div class="legend-row">
+                            <span><span class="legend-line line-married"></span> Married</span>
+                            <span><span class="legend-line line-cohab"></span> Dating/Cohab</span>
+                            <span><span class="legend-line line-separated"></span> Separated</span>
+                            <span><span class="legend-line line-divorced"></span> Divorced</span>
+                        </div>
+                    </div>
+                    
+                    <div class="legend-bar-section">
+                        <span class="section-title">Medical Conditions</span>
+                        <div class="legend-row font-dense">
+                            <span><span class="legend-color-box cond-heart"></span> Heart</span>
+                            <span><span class="legend-color-box cond-diabetes"></span> Diabetes</span>
+                            <span><span class="legend-color-box cond-hyper"></span> Hyper.</span>
+                            <span><span class="legend-color-box cond-cancer"></span> Cancer</span>
+                            <span><span class="legend-color-box cond-depression"></span> Depression</span>
+                            <span><span class="legend-color-box cond-substance"></span> Substance</span>
+                            <span><span class="legend-color-box cond-asthma"></span> Asthma</span>
+                        </div>
+                    </div>
+                </div>
             </section>
         </main>
     </div>
