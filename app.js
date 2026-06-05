@@ -96,6 +96,7 @@ function updatePerson(id, updatedFields) {
   const person = state.people.find(p => p.id === id);
   if (person) {
     Object.assign(person, updatedFields);
+    updateFormDropdowns();
     render();
     if (state.selectedId === id) {
       showSelectionDetails();
@@ -407,6 +408,10 @@ function setupEventListeners() {
   svg.addEventListener("mousemove", onMouseMove);
   window.addEventListener("mouseup", onMouseUp);
   svg.addEventListener("wheel", onWheel, { passive: false });
+  svg.addEventListener("touchstart", onTouchStart, { passive: false });
+  svg.addEventListener("touchmove", onTouchMove, { passive: false });
+  window.addEventListener("touchend", onTouchEnd);
+  window.addEventListener("touchcancel", onTouchEnd);
 
   // Mobile View Toggle FAB event handler
   const mobileToggleBtn = document.getElementById("mobileToggleBtn");
@@ -422,6 +427,14 @@ function setupEventListeners() {
         mobileToggleBtn.querySelector(".label").textContent = "Edit Data";
       }
     });
+  }
+
+  // Sidebar Tabs event listeners
+  const tabBuildBtn = document.getElementById("tabBuildBtn");
+  const tabEditBtn = document.getElementById("tabEditBtn");
+  if (tabBuildBtn && tabEditBtn) {
+    tabBuildBtn.addEventListener("click", () => switchTab('build'));
+    tabEditBtn.addEventListener("click", () => switchTab('edit'));
   }
 
   // Exporters hookups (mapped to header dropdown menu buttons)
@@ -630,6 +643,88 @@ function getSvgCoords(e) {
   };
 }
 
+function getTouchCoords(e) {
+  if (!e.touches || e.touches.length === 0) return { x: 0, y: 0 };
+  const touch = e.touches[0];
+  const rect = svg.getBoundingClientRect();
+  const clientX = touch.clientX - rect.left;
+  const clientY = touch.clientY - rect.top;
+  
+  return {
+    x: (clientX - state.panX) / state.zoom,
+    y: (clientY - state.panY) / state.zoom
+  };
+}
+
+function onTouchStart(e) {
+  const nodeEl = e.target.closest(".genogram-node");
+  if (nodeEl) {
+    e.preventDefault();
+    const id = nodeEl.getAttribute("data-id");
+    selectElement('person', id);
+    
+    const person = state.people.find(p => p.id === id);
+    if (person) {
+      state.draggedNode = person;
+      
+      const pt = getTouchCoords(e);
+      state.dragOffset.x = pt.x - person.x;
+      state.dragOffset.y = pt.y - person.y;
+    }
+    return;
+  }
+  
+  const lineEl = e.target.closest(".genogram-line");
+  if (lineEl) {
+    e.preventDefault();
+    const id = lineEl.getAttribute("data-id");
+    selectElement('relationship', id);
+    return;
+  }
+
+  if (e.target.id === "svgBgClick" || e.target === svg) {
+    e.preventDefault();
+    clearSelection();
+    
+    state.isPanning = true;
+    const touch = e.touches[0];
+    state.dragOffset.x = touch.clientX - state.panX;
+    state.dragOffset.y = touch.clientY - state.panY;
+  }
+}
+
+function onTouchMove(e) {
+  if (state.draggedNode) {
+    e.preventDefault();
+    const pt = getTouchCoords(e);
+    let newX = pt.x - state.dragOffset.x;
+    let newY = pt.y - state.dragOffset.y;
+    
+    if (state.gridSnap) {
+      newX = Math.round(newX / 20) * 20;
+      newY = Math.round(newY / 20) * 20;
+    }
+    
+    state.draggedNode.x = newX;
+    state.draggedNode.y = newY;
+    
+    render();
+  } else if (state.isPanning) {
+    e.preventDefault();
+    if (e.touches && e.touches.length > 0) {
+      const touch = e.touches[0];
+      state.panX = touch.clientX - state.dragOffset.x;
+      state.panY = touch.clientY - state.dragOffset.y;
+      applyViewTransform();
+    }
+  }
+}
+
+function onTouchEnd(e) {
+  state.draggedNode = null;
+  state.isPanning = false;
+}
+
 // ----------------------------------------------------
 // ELEMENT SELECTION & LIVE DETAIL EDITING
 // ----------------------------------------------------
@@ -784,9 +879,12 @@ function showSelectionDetails() {
             ${traitsList}
           </div>
         </div>
-        <div class="selection-actions">
-          <button id="saveEditBtn" class="primary-btn">Save Changes</button>
-          <button id="deleteSelectBtn" class="danger-btn">Delete Member</button>
+        <div class="selection-actions" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; gap: 8px;">
+            <button id="saveEditBtn" class="primary-btn" style="flex: 1; margin: 0;">Save Changes</button>
+            <button id="cancelEditBtn" class="secondary-btn" style="flex: 1; margin: 0;">Cancel</button>
+          </div>
+          <button id="deleteSelectBtn" class="danger-btn" style="width: 100%; margin: 0;">Delete Member</button>
         </div>
       </div>
     `;
@@ -808,6 +906,11 @@ function showSelectionDetails() {
       });
       
       updatePerson(p.id, { name, gender, age, birthYear, deathYear, isDeceased, isProband, isAdopted, traits });
+      clearSelection();
+    });
+    
+    document.getElementById("cancelEditBtn").addEventListener("click", () => {
+      clearSelection();
     });
     
     document.getElementById("deleteSelectBtn").addEventListener("click", () => {
@@ -867,9 +970,12 @@ function showSelectionDetails() {
             <option value="cohabitation" ${rel.type === 'cohabitation' ? 'selected' : ''}>Cohabitation / Dating (Dashed)</option>
           </select>
         </div>
-        <div class="selection-actions">
-          <button id="saveRelBtn" class="primary-btn">Save Type</button>
-          <button id="deleteRelBtn" class="danger-btn">Break Connection</button>
+        <div class="selection-actions" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; gap: 8px;">
+            <button id="saveRelBtn" class="primary-btn" style="flex: 1; margin: 0;">Save Type</button>
+            <button id="cancelRelBtn" class="secondary-btn" style="flex: 1; margin: 0;">Cancel</button>
+          </div>
+          <button id="deleteRelBtn" class="danger-btn" style="width: 100%; margin: 0;">Break Connection</button>
         </div>
       </div>
     `;
@@ -879,7 +985,11 @@ function showSelectionDetails() {
       const newType = document.getElementById("editRelType").value;
       rel.type = newType;
       render();
-      showSelectionDetails();
+      clearSelection();
+    });
+    
+    document.getElementById("cancelRelBtn").addEventListener("click", () => {
+      clearSelection();
     });
     
     document.getElementById("deleteRelBtn").addEventListener("click", () => {
