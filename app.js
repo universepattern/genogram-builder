@@ -273,11 +273,11 @@ function hideOverlayIfNeeded() {
 // ----------------------------------------------------
 
 function setupEventListeners() {
-  // Sidebar Accordion Headers
+  // Sidebar Accordion Headers - skip no-collapse sections
   document.querySelectorAll(".section-header").forEach(header => {
+    const section = header.parentElement;
+    if (section.classList.contains("no-collapse")) return;
     header.addEventListener("click", () => {
-      // Toggle active state
-      const section = header.parentElement;
       section.classList.toggle("active");
     });
   });
@@ -530,7 +530,7 @@ function setupEventListeners() {
 
     // Reset Form
     addPersonForm.reset();
-    document.querySelectorAll(".trait-chip").forEach(chip => chip.classList.remove("active"));
+    document.querySelectorAll(".trait-row").forEach(row => row.classList.remove("checked"));
     
     // Hide and reset relation dropdown block
     const relationFieldContainer = document.getElementById("relationFieldContainer");
@@ -543,14 +543,12 @@ function setupEventListeners() {
     }
   });
 
-  // Custom Trait Chip Checkboxes Visual Toggles
-  document.querySelectorAll(".trait-chip input").forEach(cb => {
+  // Custom Trait Row Checkboxes Visual Toggles (Add form)
+  document.querySelectorAll(".trait-row input, .trait-cb").forEach(cb => {
     cb.addEventListener("change", (e) => {
-      const chip = e.target.closest(".trait-chip");
-      if (e.target.checked) {
-        chip.classList.add("active");
-      } else {
-        chip.classList.remove("active");
+      const row = e.target.closest(".trait-row");
+      if (row) {
+        row.classList.toggle("checked", e.target.checked);
       }
     });
   });
@@ -1164,13 +1162,14 @@ function showSelectionDetails() {
       return;
     }
     
-    // Render detailed editor card for person
+    // Build trait list as clean inline rows
     let traitsList = ALL_TRAITS.map(t => {
       const checked = p.traits.includes(t.id) ? "checked" : "";
-      const activeClass = p.traits.includes(t.id) ? "active" : "";
+      const checkedClass = p.traits.includes(t.id) ? "checked" : "";
       return `
-        <label class="trait-chip ${activeClass}" data-trait="${t.id}">
-          <input type="checkbox" value="${t.id}" ${checked} class="edit-trait-cb"> ${t.name}
+        <label class="trait-row ${checkedClass}" data-trait="${t.id}">
+          <input type="checkbox" value="${t.id}" ${checked} class="edit-trait-cb">
+          <span class="trait-row-label">${t.name}</span>
         </label>
       `;
     }).join("");
@@ -1223,7 +1222,7 @@ function showSelectionDetails() {
         </div>
         <div class="form-field">
           <label>Medical Conditions</label>
-          <div class="traits-checkbox-grid">
+          <div class="traits-checkbox-list">
             ${traitsList}
           </div>
         </div>
@@ -1275,11 +1274,11 @@ function showSelectionDetails() {
       }
     });
 
-    // Checkbox toggling inside detail panel
+    // Checkbox toggling inside edit panel
     document.querySelectorAll(".edit-trait-cb").forEach(cb => {
       cb.addEventListener("change", (e) => {
-        const chip = e.target.closest(".trait-chip");
-        chip.classList.toggle("active", e.target.checked);
+        const row = e.target.closest(".trait-row");
+        if (row) row.classList.toggle("checked", e.target.checked);
       });
     });
 

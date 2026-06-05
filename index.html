@@ -109,9 +109,9 @@
                 <!-- Tab Panel 1: Build Tree (Contains Add Forms) -->
                 <div id="buildPanel" class="tab-panel active">
                     <!-- ACCORDION SECTION 0: QUICK GUIDE -->
-                    <div class="sidebar-section">
-                        <div class="section-header">
-                            <h2>📖 How to Use (Quick Guide)</h2>
+                    <div class="sidebar-section active no-collapse" style="border-bottom: 2px solid var(--border-light);">
+                        <div class="section-header" style="background: rgba(130,111,86,0.04); cursor: default;">
+                            <h2>📖 Quick Guide</h2>
                         </div>
                         <div class="section-content help-content" style="font-size: 13px; color: var(--text-muted); line-height: 1.6; display: flex; flex-direction: column; gap: 10px; padding-top: 12px; padding-bottom: 12px;">
                             <p>Follow this simple workflow to draw your family tree:</p>
@@ -197,30 +197,38 @@
                                 </div>
                                 <div class="form-field">
                                     <label>Medical Traits / Conditions</label>
-                                    <div class="traits-checkbox-grid">
-                                        <label class="trait-chip" data-trait="heart_disease">
-                                            <input type="checkbox" value="heart_disease" class="trait-cb"> Heart Disease
+                                    <div class="traits-checkbox-list">
+                                        <label class="trait-row" data-trait="heart_disease">
+                                            <input type="checkbox" value="heart_disease" class="trait-cb">
+                                            <span class="trait-row-label">Heart Disease</span>
                                         </label>
-                                        <label class="trait-chip" data-trait="diabetes">
-                                            <input type="checkbox" value="diabetes" class="trait-cb"> Diabetes
+                                        <label class="trait-row" data-trait="diabetes">
+                                            <input type="checkbox" value="diabetes" class="trait-cb">
+                                            <span class="trait-row-label">Diabetes</span>
                                         </label>
-                                        <label class="trait-chip" data-trait="hypertension">
-                                            <input type="checkbox" value="hypertension" class="trait-cb"> Hypertension
+                                        <label class="trait-row" data-trait="hypertension">
+                                            <input type="checkbox" value="hypertension" class="trait-cb">
+                                            <span class="trait-row-label">Hypertension</span>
                                         </label>
-                                        <label class="trait-chip" data-trait="cancer">
-                                            <input type="checkbox" value="cancer" class="trait-cb"> Cancer
+                                        <label class="trait-row" data-trait="cancer">
+                                            <input type="checkbox" value="cancer" class="trait-cb">
+                                            <span class="trait-row-label">Cancer</span>
                                         </label>
-                                        <label class="trait-chip" data-trait="depression">
-                                            <input type="checkbox" value="depression" class="trait-cb"> Depression / Anxiety
+                                        <label class="trait-row" data-trait="depression">
+                                            <input type="checkbox" value="depression" class="trait-cb">
+                                            <span class="trait-row-label">Depression / Anxiety</span>
                                         </label>
-                                        <label class="trait-chip" data-trait="substance_abuse">
-                                            <input type="checkbox" value="substance_abuse" class="trait-cb"> Substance Abuse
+                                        <label class="trait-row" data-trait="substance_abuse">
+                                            <input type="checkbox" value="substance_abuse" class="trait-cb">
+                                            <span class="trait-row-label">Substance Abuse</span>
                                         </label>
-                                        <label class="trait-chip" data-trait="asthma">
-                                            <input type="checkbox" value="asthma" class="trait-cb"> Asthma
+                                        <label class="trait-row" data-trait="asthma">
+                                            <input type="checkbox" value="asthma" class="trait-cb">
+                                            <span class="trait-row-label">Asthma</span>
                                         </label>
-                                        <label class="trait-chip" data-trait="prediabetic">
-                                            <input type="checkbox" value="prediabetic" class="trait-cb"> Prediabetic
+                                        <label class="trait-row" data-trait="prediabetic">
+                                            <input type="checkbox" value="prediabetic" class="trait-cb">
+                                            <span class="trait-row-label">Prediabetic</span>
                                         </label>
                                     </div>
                                 </div>
@@ -299,9 +307,9 @@
 
                 <!-- Tab Panel 2: Edit Selected Element -->
                 <div id="editPanel" class="tab-panel">
-                    <div id="selectionPanel" class="sidebar-section active">
-                        <div class="section-header">
-                            <h2>✏️ Mapped Properties</h2>
+                    <div id="selectionPanel" class="sidebar-section active no-collapse">
+                        <div class="section-header" style="cursor: default;">
+                            <h2>✏️ Edit Properties</h2>
                             <span class="selection-indicator offline" id="selectionStatus">None Selected</span>
                         </div>
                         <div class="section-content" id="selectionContent">
