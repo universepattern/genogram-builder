@@ -171,6 +171,19 @@ function deleteChildLink(childId, parentId) {
 }
 
 function loadTemplate(templateName) {
+  if (templateName === 'blank') {
+    state.people = [];
+    state.relationships = [];
+    state.children = [];
+    clearSelection();
+    updateFormDropdowns();
+    peopleCountBadge.textContent = "0";
+    hideOverlayIfNeeded();
+    render();
+    resetView();
+    return;
+  }
+
   const t = GENOGRAM_TEMPLATES[templateName];
   if (!t) return;
   
