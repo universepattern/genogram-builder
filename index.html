@@ -25,6 +25,18 @@
                 </div>
             </div>
             <div class="header-controls">
+                <div class="control-group">
+                    <label for="templateSelect">Template</label>
+                    <select id="templateSelect" class="cream-select">
+                        <option value="" disabled selected>Select a Template...</option>
+                        <option value="threeGeneration">Standard 3-Generation Family</option>
+                        <option value="blendedFamily">Blended / Reconstituted Family</option>
+                        <option value="medicalStudy">Medical Case History</option>
+                        <option value="adoptionStandard">Adoption & Biological Parents</option>
+                        <option value="skywalkerDynasty">Skywalker Family (Star Wars)</option>
+                        <option value="royalHemophilia">British Royal Family (Hemophilia)</option>
+                    </select>
+                </div>
                 <div class="style-toggle-container">
                     <button id="styleBwBtn" class="toggle-btn active" title="Standard Black & White clinical styling">
                         <span>Black & White</span>
@@ -79,20 +91,8 @@
 
                 <!-- Tab Panel 1: Build Tree (Contains Add Forms) -->
                 <div id="buildPanel" class="tab-panel active">
-                    <!-- ACCORDION SECTION 0: PRESETS & TEMPLATES -->
-                    <div class="sidebar-section active">
-                        <div class="section-header">
-                            <h2>0. Load Template</h2>
-                        </div>
-                        <div class="section-content">
-                            <div class="templates-grid" id="templatesGrid">
-                                <!-- Dynamically populated in app.js -->
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- ACCORDION SECTION 1: INDIVIDUALS -->
-                    <div class="sidebar-section">
+                    <div class="sidebar-section active">
                         <div class="section-header">
                             <h2>1. Family Members</h2>
                             <span class="badge" id="peopleCountBadge">0</span>

@@ -48,6 +48,7 @@ const autoLayoutBtn = document.getElementById("autoLayoutBtn");
 const clearAllBtn = document.getElementById("clearAllBtn");
 const styleBwBtn = document.getElementById("styleBwBtn");
 const styleColBtn = document.getElementById("styleColBtn");
+const templateSelect = document.getElementById("templateSelect");
 
 // Export Buttons
 const exportPngBtn = document.getElementById("exportPngBtn");
@@ -73,7 +74,6 @@ const ALL_TRAITS = [
 function init() {
   setupEventListeners();
   updateFormDropdowns();
-  renderTemplatesMenu();
   render();
   
   // Set default view transform
@@ -266,6 +266,13 @@ function setupEventListeners() {
       } else {
         legendToggleIcon.textContent = "▼";
       }
+    });
+  }
+
+  // Template Selector
+  if (templateSelect) {
+    templateSelect.addEventListener("change", (e) => {
+      loadTemplate(e.target.value);
     });
   }
 
@@ -1252,38 +1259,6 @@ function render() {
     `;
     
     peopleGroup.appendChild(gNode);
-  });
-}
-
-// Render templates grid in the sidebar dynamically
-function renderTemplatesMenu() {
-  const grid = document.getElementById("templatesGrid");
-  if (!grid) return;
-  
-  grid.innerHTML = "";
-  
-  Object.keys(GENOGRAM_TEMPLATES).forEach(key => {
-    const t = GENOGRAM_TEMPLATES[key];
-    const card = document.createElement("div");
-    card.className = "template-card";
-    card.setAttribute("data-template", key);
-    
-    card.innerHTML = `
-      <h3>${t.name}</h3>
-      <p>${t.description}</p>
-      <button class="template-load-btn">Load Template</button>
-    `;
-    
-    card.querySelector(".template-load-btn").addEventListener("click", (e) => {
-      e.stopPropagation();
-      loadTemplate(key);
-      
-      // Update visual active state
-      document.querySelectorAll(".template-card").forEach(c => c.classList.remove("active"));
-      card.classList.add("active");
-    });
-    
-    grid.appendChild(card);
   });
 }
 
