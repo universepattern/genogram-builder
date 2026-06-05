@@ -121,7 +121,7 @@ function deletePerson(id) {
   updateFormDropdowns();
   peopleCountBadge.textContent = state.people.length;
   hideOverlayIfNeeded();
-  render();
+  runAutoLayout();
 }
 
 function addNewPersonWithGender(gender) {
@@ -182,7 +182,7 @@ function addRelationship(rel) {
   
   state.relationships.push(rel);
   updateFormDropdowns();
-  render();
+  runAutoLayout();
 }
 
 function deleteRelationship(id) {
@@ -194,7 +194,7 @@ function deleteRelationship(id) {
     clearSelection();
   }
   updateFormDropdowns();
-  render();
+  runAutoLayout();
 }
 
 function addChild(childLink) {
@@ -208,12 +208,12 @@ function addChild(childLink) {
   }
   
   state.children.push(childLink);
-  render();
+  runAutoLayout();
 }
 
 function deleteChildLink(childId, parentId) {
   state.children = state.children.filter(c => !(c.childId === childId && c.parentId === parentId));
-  render();
+  runAutoLayout();
 }
 
 function loadTemplate(templateName) {
@@ -1703,6 +1703,18 @@ function render() {
       carrierHtml = `<circle cx="0" cy="0" r="5" fill="${dotColor}" stroke="none" />`;
     }
     
+    // Determine label positions to avoid line overlaps
+    const isParent = state.relationships.some(r => r.personA === p.id || r.personB === p.id);
+    const isChild = state.children.some(c => c.childId === p.id);
+    
+    let nameY = 32;
+    let detailsY = 44;
+    
+    if (isParent && !isChild) {
+      nameY = -32;
+      detailsY = -44;
+    }
+    
     // Compile label texts
     let detailsLabel = "";
     if (p.age) detailsLabel += p.age;
@@ -1724,12 +1736,12 @@ function render() {
       ${carrierHtml}
       
       <!-- Label Name (White stroke shadow underneath for high legibility over lines) -->
-      <text class="node-label-name" y="32" stroke="${state.isColorMode ? '#fbfaf7' : '#ffffff'}" stroke-width="3" paint-order="stroke fill" stroke-linejoin="round">${p.name}</text>
-      <text class="node-label-name" y="32">${p.name}</text>
+      <text class="node-label-name" y="${nameY}" stroke="${state.isColorMode ? '#fbfaf7' : '#ffffff'}" stroke-width="7" paint-order="stroke fill" stroke-linejoin="round">${p.name}</text>
+      <text class="node-label-name" y="${nameY}">${p.name}</text>
       
       <!-- Label Details (Age, Years) -->
-      <text class="node-label-details" y="44" stroke="${state.isColorMode ? '#fbfaf7' : '#ffffff'}" stroke-width="3" paint-order="stroke fill" stroke-linejoin="round">${detailsLabel}</text>
-      <text class="node-label-details" y="44">${detailsLabel}</text>
+      <text class="node-label-details" y="${detailsY}" stroke="${state.isColorMode ? '#fbfaf7' : '#ffffff'}" stroke-width="7" paint-order="stroke fill" stroke-linejoin="round">${detailsLabel}</text>
+      <text class="node-label-details" y="${detailsY}">${detailsLabel}</text>
     `;
     
     peopleGroup.appendChild(gNode);
