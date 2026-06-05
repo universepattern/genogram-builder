@@ -275,22 +275,24 @@ const Exporter = {
         doc.setTextColor(60, 51, 42);
         
         // Col 1: Symbols
-        doc.text("• Square: Male", 18, legendY + 7);
-        doc.text("• Circle: Female", 18, legendY + 11);
-        doc.text("• Diamond: Other/Unknown", 18, legendY + 15);
-        doc.text("• Overlaid X: Deceased", 18, legendY + 19);
+        doc.text("• Square: Male | Circle: Female", 18, legendY + 7);
+        doc.text("• Diamond: Other | Triangle: Pregnancy", 18, legendY + 11);
+        doc.text("• Overlaid X: Deceased | Double Border: Proband", 18, legendY + 15);
+        doc.text("• Shape Brackets [ ]: Adopted Member", 18, legendY + 19);
+        doc.text("• Centered Dot: Genetic Carrier", 18, legendY + 23);
         
         // Col 2: Relationships
-        doc.text("• Solid Line: Married", 75, legendY + 7);
-        doc.text("• Dashed Line: Cohabiting/Dating", 75, legendY + 11);
-        doc.text("• Single Diagonal Slash: Separated", 75, legendY + 15);
-        doc.text("• Double Diagonal Slash: Divorced", 75, legendY + 19);
+        doc.text("• Solid Line: Married", 85, legendY + 7);
+        doc.text("• Dashed Line: Cohabiting/Dating", 85, legendY + 11);
+        doc.text("• Single Diagonal Slash: Separated", 85, legendY + 15);
+        doc.text("• Double Diagonal Slash: Divorced", 85, legendY + 19);
         
         // Col 3: Traits
-        doc.text("• Heart Disease: Red / 45° Stripes", 135, legendY + 7);
-        doc.text("• Diabetes: Yellow-Orange / Dots", 135, legendY + 11);
-        doc.text("• Hypertension: Cyan / Crosshatch", 135, legendY + 15);
-        doc.text("• Cancer / Mental Traits: Purple-Green", 135, legendY + 19);
+        doc.text("• Heart Disease: Red / 45° Stripes", 138, legendY + 7);
+        doc.text("• Diabetes: Yellow-Orange / Dots", 138, legendY + 11);
+        doc.text("• Hypertension: Cyan / Crosshatch", 138, legendY + 15);
+        doc.text("• Cancer / Depression: Purple / Green", 138, legendY + 19);
+        doc.text("• Hemophilia: Dark Red / Dense Diag.", 138, legendY + 23);
       }
       
       // PAGE 2: FAMILY REGISTER TABLE

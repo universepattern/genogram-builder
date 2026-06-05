@@ -48,7 +48,6 @@ const autoLayoutBtn = document.getElementById("autoLayoutBtn");
 const clearAllBtn = document.getElementById("clearAllBtn");
 const styleBwBtn = document.getElementById("styleBwBtn");
 const styleColBtn = document.getElementById("styleColBtn");
-const templateSelect = document.getElementById("templateSelect");
 
 // Export Buttons
 const exportPngBtn = document.getElementById("exportPngBtn");
@@ -65,13 +64,16 @@ const ALL_TRAITS = [
   { id: "cancer", name: "Cancer" },
   { id: "depression", name: "Depression / Anxiety" },
   { id: "substance_abuse", name: "Substance Abuse" },
-  { id: "asthma", name: "Asthma" }
+  { id: "asthma", name: "Asthma" },
+  { id: "hemophilia", name: "Hemophilia (Affected)" },
+  { id: "hemophilia_carrier", name: "Hemophilia (Carrier)" }
 ];
 
 // Initialize Application
 function init() {
   setupEventListeners();
   updateFormDropdowns();
+  renderTemplatesMenu();
   render();
   
   // Set default view transform
@@ -266,11 +268,6 @@ function setupEventListeners() {
       }
     });
   }
-
-  // Template Selector
-  templateSelect.addEventListener("change", (e) => {
-    loadTemplate(e.target.value);
-  });
 
   // Add Person Form Submit
   addPersonForm.addEventListener("submit", (e) => {
@@ -1117,8 +1114,8 @@ function render() {
     // Quadrant paths for Traits
     let traitPathsHtml = "";
     
-    // Build array of up to 4 traits mapped on the quadrants
-    const activeTraits = p.traits.slice(0, 4);
+    // Build array of up to 4 traits mapped on the quadrants (excluding carrier which is central dot)
+    const activeTraits = p.traits.filter(t => t !== "hemophilia_carrier").slice(0, 4);
     
     if (activeTraits.length > 0) {
       activeTraits.forEach((traitId, idx) => {
@@ -1217,6 +1214,13 @@ function render() {
       const crossColor = state.isColorMode ? "#826f56" : "#000000";
       deceasedHtml = `<path d="M -15 -15 L 15 15 M 15 -15 L -15 15" stroke="${crossColor}" class="deceased-x" />`;
     }
+
+    // Carrier dot overlay (Standard Clinical Symbol)
+    let carrierHtml = "";
+    if (p.traits.includes("hemophilia_carrier")) {
+      const dotColor = state.isColorMode ? "#8b6db8" : "#000000";
+      carrierHtml = `<circle cx="0" cy="0" r="5" fill="${dotColor}" stroke="none" />`;
+    }
     
     // Compile label texts
     let detailsLabel = "";
@@ -1236,6 +1240,7 @@ function render() {
       ${probandHtml}
       ${adoptedHtml}
       ${deceasedHtml}
+      ${carrierHtml}
       
       <!-- Label Name (White stroke shadow underneath for high legibility over lines) -->
       <text class="node-label-name" y="32" stroke="${state.isColorMode ? '#fbfaf7' : '#ffffff'}" stroke-width="3" paint-order="stroke fill" stroke-linejoin="round">${p.name}</text>
@@ -1247,6 +1252,38 @@ function render() {
     `;
     
     peopleGroup.appendChild(gNode);
+  });
+}
+
+// Render templates grid in the sidebar dynamically
+function renderTemplatesMenu() {
+  const grid = document.getElementById("templatesGrid");
+  if (!grid) return;
+  
+  grid.innerHTML = "";
+  
+  Object.keys(GENOGRAM_TEMPLATES).forEach(key => {
+    const t = GENOGRAM_TEMPLATES[key];
+    const card = document.createElement("div");
+    card.className = "template-card";
+    card.setAttribute("data-template", key);
+    
+    card.innerHTML = `
+      <h3>${t.name}</h3>
+      <p>${t.description}</p>
+      <button class="template-load-btn">Load Template</button>
+    `;
+    
+    card.querySelector(".template-load-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      loadTemplate(key);
+      
+      // Update visual active state
+      document.querySelectorAll(".template-card").forEach(c => c.classList.remove("active"));
+      card.classList.add("active");
+    });
+    
+    grid.appendChild(card);
   });
 }
 

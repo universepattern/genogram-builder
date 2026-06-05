@@ -25,15 +25,6 @@
                 </div>
             </div>
             <div class="header-controls">
-                <div class="control-group">
-                    <label for="templateSelect">Template</label>
-                    <select id="templateSelect" class="cream-select">
-                        <option value="" disabled selected>Select a Template...</option>
-                        <option value="threeGeneration">Standard 3-Generation Family</option>
-                        <option value="blendedFamily">Blended / Reconstituted Family</option>
-                        <option value="medicalStudy">Medical Case History</option>
-                    </select>
-                </div>
                 <div class="style-toggle-container">
                     <button id="styleBwBtn" class="toggle-btn active" title="Standard Black & White clinical styling">
                         <span>Black & White</span>
@@ -87,8 +78,20 @@
 
                 <!-- Tab Panel 1: Build Tree (Contains Add Forms) -->
                 <div id="buildPanel" class="tab-panel active">
-                    <!-- ACCORDION SECTION 1: INDIVIDUALS -->
+                    <!-- ACCORDION SECTION 0: PRESETS & TEMPLATES -->
                     <div class="sidebar-section active">
+                        <div class="section-header">
+                            <h2>0. Load Template</h2>
+                        </div>
+                        <div class="section-content">
+                            <div class="templates-grid" id="templatesGrid">
+                                <!-- Dynamically populated in app.js -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACCORDION SECTION 1: INDIVIDUALS -->
+                    <div class="sidebar-section">
                         <div class="section-header">
                             <h2>1. Family Members</h2>
                             <span class="badge" id="peopleCountBadge">0</span>
@@ -310,10 +313,14 @@
                                 <rect width="12" height="12" fill="none" stroke="#000" stroke-width="1"/>
                                 <path d="M 0 6 L 12 6 M 6 0 L 6 6 M 6 6 L 6 12" stroke="#000" stroke-width="1"/>
                             </pattern>
-                            <!-- Pattern 7: Asthma (Checkerboard) -->
+                             <!-- Pattern 7: Asthma (Checkerboard) -->
                             <pattern id="pat_asthma" width="10" height="10" patternUnits="userSpaceOnUse">
                                 <rect width="5" height="5" fill="#000" />
                                 <rect x="5" y="5" width="5" height="5" fill="#000" />
+                            </pattern>
+                            <!-- Pattern 8: Hemophilia (Dense Diagonals) -->
+                            <pattern id="pat_hemophilia" width="6" height="6" patternUnits="userSpaceOnUse">
+                                <line x1="0" y1="0" x2="6" y2="6" stroke="#000" stroke-width="1.5" />
                             </pattern>
 
                             <!-- Drop Shadow for Nodes -->
@@ -352,47 +359,49 @@
                         <span>🖱️ Middle-drag/Space-drag to Pan | Scroll to Zoom | Drag shapes to arrange</span>
                     </div>
                 </div>
-
-                <!-- Horizontal Bottom Legend Bar (Sits statically under the canvas container) -->
-                <div class="workspace-legend-bar">
-                    <div class="legend-bar-section">
-                        <span class="section-title">Standard Shapes & Symbols</span>
-                        <div class="legend-row">
-                            <span><span class="legend-symbol sym-male"></span> Male</span>
-                            <span><span class="legend-symbol sym-female"></span> Female</span>
-                            <span><span class="legend-symbol sym-other"></span> Other</span>
-                            <span><span class="legend-symbol sym-pregnancy"></span> Pregnancy</span>
-                            <span><span class="legend-symbol sym-deceased"></span> Deceased</span>
-                            <span><span class="legend-symbol sym-proband"></span> Proband</span>
-                            <span><span class="legend-symbol sym-adopted"></span> Adopted</span>
-                        </div>
-                    </div>
-                    
-                    <div class="legend-bar-section">
-                        <span class="section-title">Relationships</span>
-                        <div class="legend-row">
-                            <span><span class="legend-line line-married"></span> Married</span>
-                            <span><span class="legend-line line-cohab"></span> Dating/Cohab</span>
-                            <span><span class="legend-line line-separated"></span> Separated</span>
-                            <span><span class="legend-line line-divorced"></span> Divorced</span>
-                        </div>
-                    </div>
-                    
-                    <div class="legend-bar-section">
-                        <span class="section-title">Medical Conditions</span>
-                        <div class="legend-row font-dense">
-                            <span><span class="legend-color-box cond-heart"></span> Heart</span>
-                            <span><span class="legend-color-box cond-diabetes"></span> Diabetes</span>
-                            <span><span class="legend-color-box cond-hyper"></span> Hyper.</span>
-                            <span><span class="legend-color-box cond-cancer"></span> Cancer</span>
-                            <span><span class="legend-color-box cond-depression"></span> Depression</span>
-                            <span><span class="legend-color-box cond-substance"></span> Substance</span>
-                            <span><span class="legend-color-box cond-asthma"></span> Asthma</span>
-                        </div>
-                    </div>
-                </div>
             </section>
         </main>
+
+        <!-- Horizontal Bottom Legend Bar (Sits statically at the bottom of the screen) -->
+        <div class="workspace-legend-bar">
+            <div class="legend-bar-section">
+                <span class="section-title">Standard Shapes & Symbols</span>
+                <div class="legend-row">
+                    <span><span class="legend-symbol sym-male"></span> Male</span>
+                    <span><span class="legend-symbol sym-female"></span> Female</span>
+                    <span><span class="legend-symbol sym-other"></span> Other</span>
+                    <span><span class="legend-symbol sym-pregnancy"></span> Pregnancy</span>
+                    <span><span class="legend-symbol sym-deceased"></span> Deceased</span>
+                    <span><span class="legend-symbol sym-proband"></span> Proband</span>
+                    <span><span class="legend-symbol sym-adopted"></span> Adopted</span>
+                    <span><span class="legend-symbol sym-carrier"></span> Carrier (X-Linked)</span>
+                </div>
+            </div>
+            
+            <div class="legend-bar-section">
+                <span class="section-title">Relationships</span>
+                <div class="legend-row">
+                    <span><span class="legend-line line-married"></span> Married</span>
+                    <span><span class="legend-line line-cohab"></span> Dating/Cohab</span>
+                    <span><span class="legend-line line-separated"></span> Separated</span>
+                    <span><span class="legend-line line-divorced"></span> Divorced</span>
+                </div>
+            </div>
+            
+            <div class="legend-bar-section">
+                <span class="section-title">Medical Conditions</span>
+                <div class="legend-row font-dense">
+                    <span><span class="legend-color-box cond-heart"></span> Heart</span>
+                    <span><span class="legend-color-box cond-diabetes"></span> Diabetes</span>
+                    <span><span class="legend-color-box cond-hyper"></span> Hyper.</span>
+                    <span><span class="legend-color-box cond-cancer"></span> Cancer</span>
+                    <span><span class="legend-color-box cond-depression"></span> Depression</span>
+                    <span><span class="legend-color-box cond-substance"></span> Substance</span>
+                    <span><span class="legend-color-box cond-asthma"></span> Asthma</span>
+                    <span><span class="legend-color-box cond-hemo"></span> Hemophilia</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->

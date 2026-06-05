@@ -28,6 +28,8 @@
     --trait-depression: #66ad75;
     --trait-substance: #a35a58;
     --trait-asthma: #d6874b;
+    --trait-hemophilia: #b84f4f;
+    --trait-hemophilia_carrier: #8b6db8;
     
     /* Fonts */
     --font-serif: 'Playfair Display', Georgia, serif;
@@ -844,14 +846,15 @@ body {
     background-color: var(--bg-panel);
     border-top: 1px solid var(--border-light);
     display: flex;
-    gap: 30px;
-    padding: 10px 24px;
-    height: 75px;
+    gap: 40px;
+    padding: 10px 30px;
+    height: 80px;
     font-family: var(--font-sans);
     align-items: center;
     justify-content: space-between;
     z-index: 5;
     flex-shrink: 0; /* Keep it fixed height */
+    width: 100%;
 }
 
 .legend-bar-section {
@@ -862,7 +865,7 @@ body {
 }
 
 .legend-bar-section:nth-child(1) {
-    flex: 1.4; /* Give shapes section more space */
+    flex: 1.6; /* Give shapes section more space */
 }
 
 .legend-bar-section .section-title {
@@ -880,19 +883,19 @@ body {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 12px;
-    font-size: 11px;
+    gap: 16px;
+    font-size: 12px;
     color: var(--text-main);
 }
 
 .legend-row.font-dense {
-    gap: 8px; /* Denser grid for traits to fit comfortably */
+    gap: 10px; /* Denser grid for traits to fit comfortably */
 }
 
 .legend-row span {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     white-space: nowrap;
 }
 
@@ -930,40 +933,40 @@ body {
 }
 
 .sym-male {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
 }
 
 .sym-female {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
 }
 
 .sym-other {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     transform: rotate(45deg);
 }
 
 .sym-deceased {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
     position: relative;
 }
 .sym-deceased::after {
     content: '';
     position: absolute;
-    top: -1.5px; left: 4.5px;
-    width: 1.5px; height: 12px;
+    top: -1.5px; left: 6.5px;
+    width: 1.5px; height: 16px;
     background-color: #000;
     transform: rotate(45deg);
 }
 .sym-deceased::before {
     content: '';
     position: absolute;
-    top: -1.5px; left: 4.5px;
-    width: 1.5px; height: 12px;
+    top: -1.5px; left: 6.5px;
+    width: 1.5px; height: 16px;
     background-color: #000;
     transform: rotate(-45deg);
 }
@@ -971,24 +974,38 @@ body {
 .sym-pregnancy {
     background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><polygon points="10,2 18,17 2,17" fill="white" stroke="black" stroke-width="2"/></svg>') no-repeat center;
     border: none !important;
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
 }
 
 .sym-proband {
     background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" fill="white" stroke="black" stroke-width="2"/><rect x="6" y="6" width="12" height="12" fill="none" stroke="black" stroke-width="2"/></svg>') no-repeat center;
     border: none !important;
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
 }
 
 .sym-adopted {
     background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 20"><path d="M 6,2 L 2,2 L 2,18 L 6,18" fill="none" stroke="black" stroke-width="2"/><path d="M 22,2 L 26,2 L 26,18 L 22,18" fill="none" stroke="black" stroke-width="2"/><circle cx="14" cy="10" r="5" fill="white" stroke="black" stroke-width="2"/></svg>') no-repeat center;
     border: none !important;
-    width: 16px;
-    height: 12px;
+    width: 22px;
+    height: 16px;
 }
 
+.sym-carrier {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    position: relative;
+}
+.sym-carrier::after {
+    content: '';
+    position: absolute;
+    top: 5px; left: 5px;
+    width: 3px; height: 3px;
+    background-color: #000;
+    border-radius: 50%;
+}
 
 /* Lines */
 .legend-line {
@@ -1034,8 +1051,8 @@ body {
 /* Condition boxes */
 .legend-color-box {
     display: inline-block;
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
     border: 1px solid var(--border-light);
 }
 
@@ -1047,6 +1064,7 @@ body {
 .cond-depression { background-color: var(--trait-depression); }
 .cond-substance { background-color: var(--trait-substance); }
 .cond-asthma { background-color: var(--trait-asthma); }
+.cond-hemo { background-color: var(--trait-hemophilia); }
 
 /* SVG Node Classes */
 .genogram-node {
@@ -1131,6 +1149,7 @@ body {
 .bw-mode .cond-depression { background: url(#pat_depression); }
 .bw-mode .cond-substance { background: url(#pat_substance_abuse); }
 .bw-mode .cond-asthma { background: url(#pat_asthma); }
+.bw-mode .cond-hemo { background: url(#pat_hemophilia); }
 
 /* responsive adjustments */
 @media (max-height: 800px) {
@@ -1161,4 +1180,73 @@ body {
     .legend-grid {
         gap: 8px;
     }
+}
+
+/* TEMPLATES SIDEBAR GRID */
+.templates-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.template-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sharp);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.template-card:hover {
+    border-color: var(--border-focus);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-soft);
+}
+
+.template-card.active {
+    border-color: var(--primary-accent);
+    background-color: rgba(130, 111, 86, 0.04);
+}
+
+.template-card h3 {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.template-card p {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+.template-load-btn {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--primary-accent);
+    background-color: transparent;
+    color: var(--primary-accent);
+    transition: all 0.2s ease;
+    align-self: flex-start;
+}
+
+.template-load-btn:hover {
+    background-color: var(--primary-accent);
+    color: var(--bg-panel);
+}
+
+.template-card.active .template-load-btn {
+    background-color: var(--primary-accent);
+    color: var(--bg-panel);
 }
