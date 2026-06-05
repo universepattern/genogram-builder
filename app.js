@@ -237,6 +237,36 @@ function setupEventListeners() {
     render();
   });
 
+  // Export Dropdown Trigger
+  const exportDropdownBtn = document.getElementById("exportDropdownBtn");
+  const exportMenu = document.getElementById("exportMenu");
+  if (exportDropdownBtn && exportMenu) {
+    exportDropdownBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      exportMenu.classList.toggle("show");
+    });
+    
+    // Close export menu on click outside
+    window.addEventListener("click", () => {
+      exportMenu.classList.remove("show");
+    });
+  }
+
+  // Floating Legend Collapsible Trigger
+  const legendToggle = document.getElementById("legendToggle");
+  const floatingLegend = document.getElementById("floatingLegend");
+  const legendToggleIcon = document.getElementById("legendToggleIcon");
+  if (legendToggle && floatingLegend) {
+    legendToggle.addEventListener("click", () => {
+      floatingLegend.classList.toggle("collapsed");
+      if (floatingLegend.classList.contains("collapsed")) {
+        legendToggleIcon.textContent = "▲";
+      } else {
+        legendToggleIcon.textContent = "▼";
+      }
+    });
+  }
+
   // Template Selector
   templateSelect.addEventListener("change", (e) => {
     loadTemplate(e.target.value);
@@ -357,12 +387,12 @@ function setupEventListeners() {
   window.addEventListener("mouseup", onMouseUp);
   svg.addEventListener("wheel", onWheel, { passive: false });
 
-  // Exporters hookups
-  exportPngBtn.addEventListener("click", () => Exporter.exportImage(svg, state.people, state.isColorMode, 'png'));
-  exportJpegBtn.addEventListener("click", () => Exporter.exportImage(svg, state.people, state.isColorMode, 'jpeg'));
-  exportSvgBtn.addEventListener("click", () => Exporter.exportSvg(svg, state.people, state.isColorMode));
-  exportPdfBtn.addEventListener("click", () => Exporter.exportPdf(svg, state.people, state.isColorMode));
-  exportWordBtn.addEventListener("click", () => Exporter.exportWord(svg, state.people, state.isColorMode));
+  // Exporters hookups (mapped to header dropdown menu buttons)
+  document.getElementById("exportPngBtn").addEventListener("click", () => Exporter.exportImage(svg, state.people, state.isColorMode, 'png'));
+  document.getElementById("exportJpegBtn").addEventListener("click", () => Exporter.exportImage(svg, state.people, state.isColorMode, 'jpeg'));
+  document.getElementById("exportSvgBtn").addEventListener("click", () => Exporter.exportSvg(svg, state.people, state.isColorMode));
+  document.getElementById("exportPdfBtn").addEventListener("click", () => Exporter.exportPdf(svg, state.people, state.isColorMode));
+  document.getElementById("exportWordBtn").addEventListener("click", () => Exporter.exportWord(svg, state.people, state.isColorMode));
 }
 
 // Update option lists inside sidebar dropdowns

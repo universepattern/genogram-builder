@@ -42,6 +42,30 @@
                         <span>Colored</span>
                     </button>
                 </div>
+                <div class="export-dropdown-container">
+                    <button id="exportDropdownBtn" class="primary-btn export-main-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        <span>Export Diagram</span>
+                        <span class="arrow-down">▼</span>
+                    </button>
+                    <div id="exportMenu" class="export-dropdown-menu">
+                        <button id="exportPngBtn" class="export-menu-item">
+                            <span class="bullet png">•</span> PNG Image (High-Res)
+                        </button>
+                        <button id="exportJpegBtn" class="export-menu-item">
+                            <span class="bullet jpeg">•</span> JPEG Image (High-Res)
+                        </button>
+                        <button id="exportSvgBtn" class="export-menu-item">
+                            <span class="bullet svg">•</span> Vector SVG (Scalable)
+                        </button>
+                        <button id="exportPdfBtn" class="export-menu-item">
+                            <span class="bullet pdf">•</span> PDF Report (with Registry)
+                        </button>
+                        <button id="exportWordBtn" class="export-menu-item">
+                            <span class="bullet word">•</span> Word Document (DOC)
+                        </button>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -190,40 +214,7 @@
                         <p class="cream-placeholder">Click a person or connection line in the workspace to view or modify their details here.</p>
                     </div>
                 </div>
-
-                <!-- EXPORT PANEL -->
-                <div class="sidebar-section active export-section">
-                    <div class="section-header">
-                        <h2>4. Export Diagram</h2>
-                    </div>
-                    <div class="section-content">
-                        <div class="export-grid">
-                            <button id="exportPngBtn" class="export-btn png-btn">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                                <span>PNG Image</span>
-                            </button>
-                            <button id="exportJpegBtn" class="export-btn jpeg-btn">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                                <span>JPEG Image</span>
-                            </button>
-                            <button id="exportSvgBtn" class="export-btn svg-btn">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                                <span>Vector SVG</span>
-                            </button>
-                            <button id="exportPdfBtn" class="export-btn pdf-btn">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                <span>PDF Report</span>
-                            </button>
-                            <button id="exportWordBtn" class="export-btn word-btn">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                <span>Word Document</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- WORKSPACE CANVAS -->
+                      <!-- WORKSPACE CANVAS -->
             <section class="canvas-area">
                 <!-- Canvas Control Bar -->
                 <div class="canvas-toolbar">
@@ -327,90 +318,98 @@
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Bottom Legend (Cream Card Style) -->
-                <div class="canvas-legend">
-                    <div class="legend-title">Genogram Legend</div>
-                    
-                    <div class="legend-grid">
-                        <div class="legend-column">
-                            <h4>Standard Symbols</h4>
-                            <div class="legend-item">
-                                <span class="legend-symbol sym-male"></span>
-                                <span>Male</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-symbol sym-female"></span>
-                                <span>Female</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-symbol sym-other"></span>
-                                <span>Other / Unknown</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-symbol sym-deceased"></span>
-                                <span>Deceased (Cross)</span>
-                            </div>
+                    <!-- Collapsible Floating Legend -->
+                    <div id="floatingLegend" class="floating-legend-overlay collapsed">
+                        <div id="legendToggle" class="legend-header">
+                            <span class="legend-header-title">📖 Genogram Legend</span>
+                            <span id="legendToggleIcon" class="toggle-icon">▲</span>
                         </div>
+                        <div class="legend-body">
+                            <div class="legend-columns-container">
+                                <div class="legend-column">
+                                    <h4>Symbols</h4>
+                                    <div class="legend-item">
+                                        <span class="legend-symbol sym-male"></span>
+                                        <span>Male</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-symbol sym-female"></span>
+                                        <span>Female</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-symbol sym-other"></span>
+                                        <span>Other / Unknown</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-symbol sym-deceased"></span>
+                                        <span>Deceased (Cross)</span>
+                                    </div>
+                                </div>
 
-                        <div class="legend-column">
-                            <h4>Relationship Lines</h4>
-                            <div class="legend-item">
-                                <span class="legend-line line-married"></span>
-                                <span>Married</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-line line-cohab"></span>
-                                <span>Dating / Cohabiting</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-line line-separated"></span>
-                                <span>Separated (1 slash)</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-line line-divorced"></span>
-                                <span>Divorced (2 slashes)</span>
-                            </div>
-                        </div>
+                                <div class="legend-column">
+                                    <h4>Relationships</h4>
+                                    <div class="legend-item">
+                                        <span class="legend-line line-married"></span>
+                                        <span>Married</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-line line-cohab"></span>
+                                        <span>Dating/Cohab</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-line line-separated"></span>
+                                        <span>Separated</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-line line-divorced"></span>
+                                        <span>Divorced</span>
+                                    </div>
+                                </div>
 
-                        <div class="legend-column list-conditions">
-                            <h4>Medical Conditions (Traits)</h4>
-                            <div class="legend-item flex-item">
-                                <span class="legend-color-box cond-heart"></span>
-                                <span class="cond-text">Heart Disease</span>
-                            </div>
-                            <div class="legend-item flex-item">
-                                <span class="legend-color-box cond-diabetes"></span>
-                                <span class="cond-text">Diabetes</span>
-                            </div>
-                            <div class="legend-item flex-item">
-                                <span class="legend-color-box cond-hyper"></span>
-                                <span class="cond-text">Hypertension</span>
-                            </div>
-                            <div class="legend-item flex-item">
-                                <span class="legend-color-box cond-cancer"></span>
-                                <span class="cond-text">Cancer</span>
-                            </div>
-                        </div>
+                                <div class="legend-column list-conditions">
+                                    <h4>Conditions</h4>
+                                    <div class="legend-item flex-item">
+                                        <span class="legend-color-box cond-heart"></span>
+                                        <span class="cond-text">Heart Disease</span>
+                                    </div>
+                                    <div class="legend-item flex-item">
+                                        <span class="legend-color-box cond-diabetes"></span>
+                                        <span class="cond-text">Diabetes</span>
+                                    </div>
+                                    <div class="legend-item flex-item">
+                                        <span class="legend-color-box cond-hyper"></span>
+                                        <span class="cond-text">Hypertension</span>
+                                    </div>
+                                    <div class="legend-item flex-item">
+                                        <span class="legend-color-box cond-cancer"></span>
+                                        <span class="cond-text">Cancer</span>
+                                    </div>
+                                </div>
 
-                        <div class="legend-column list-conditions">
-                            <h4>&nbsp;</h4>
-                            <div class="legend-item flex-item">
-                                <span class="legend-color-box cond-depression"></span>
-                                <span class="cond-text">Depression/Anxiety</span>
-                            </div>
-                            <div class="legend-item flex-item">
-                                <span class="legend-color-box cond-substance"></span>
-                                <span class="cond-text">Substance Abuse</span>
-                            </div>
-                            <div class="legend-item flex-item">
-                                <span class="legend-color-box cond-asthma"></span>
-                                <span class="cond-text">Asthma</span>
+                                <div class="legend-column list-conditions">
+                                    <h4>&nbsp;</h4>
+                                    <div class="legend-item flex-item">
+                                        <span class="legend-color-box cond-depression"></span>
+                                        <span class="cond-text">Depression/Anxiety</span>
+                                    </div>
+                                    <div class="legend-item flex-item">
+                                        <span class="legend-color-box cond-substance"></span>
+                                        <span class="cond-text">Substance Abuse</span>
+                                    </div>
+                                    <div class="legend-item flex-item">
+                                        <span class="legend-color-box cond-asthma"></span>
+                                        <span class="cond-text">Asthma</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <!-- Floating Helper Guide (Bottom Right) -->
+                    <div class="floating-help-guide">
+                        <span>🖱️ Middle-drag/Space-drag to Pan | Scroll to Zoom | Drag shapes to arrange</span>
+                    </div>
             </section>
         </main>
     </div>
