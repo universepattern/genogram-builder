@@ -768,22 +768,25 @@ function onMouseDown(e) {
   }
   
   // If clicking on a relationship line, select relationship
-  const lineEl = e.target.closest(".genogram-line");
+  const lineEl = e.target.closest(".genogram-line, .genogram-line-hitbox");
   if (lineEl) {
-    const id = lineEl.getAttribute("data-id");
-    selectElement('relationship', id);
-    return;
+    const groupEl = lineEl.closest("g");
+    if (groupEl) {
+      const id = groupEl.getAttribute("data-id");
+      if (id) {
+        selectElement('relationship', id);
+        return;
+      }
+    }
   }
 
   // Clear selection if clicking empty canvas background
-  if (e.target.id === "svgBgClick" || e.target === svg) {
-    clearSelection();
-    
-    // Start canvas panning
-    state.isPanning = true;
-    state.dragOffset.x = e.clientX - state.panX;
-    state.dragOffset.y = e.clientY - state.panY;
-  }
+  clearSelection();
+  
+  // Start canvas panning
+  state.isPanning = true;
+  state.dragOffset.x = e.clientX - state.panX;
+  state.dragOffset.y = e.clientY - state.panY;
 }
 
 function onMouseMove(e) {
@@ -910,6 +913,16 @@ function findFreePosition(startX, startY) {
 }
 
 function onTouchStart(e) {
+  if (e.touches.length === 2) {
+    e.preventDefault();
+    state.isPanning = false;
+    state.draggedNode = null;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    state.lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+    return;
+  }
+
   const nodeEl = e.target.closest(".genogram-node");
   if (nodeEl) {
     e.preventDefault();
@@ -927,19 +940,25 @@ function onTouchStart(e) {
     return;
   }
   
-  const lineEl = e.target.closest(".genogram-line");
+  const lineEl = e.target.closest(".genogram-line, .genogram-line-hitbox");
   if (lineEl) {
     e.preventDefault();
-    const id = lineEl.getAttribute("data-id");
-    selectElement('relationship', id);
-    return;
+    const groupEl = lineEl.closest("g");
+    if (groupEl) {
+      const id = groupEl.getAttribute("data-id");
+      if (id) {
+        selectElement('relationship', id);
+        return;
+      }
+    }
   }
 
-  if (e.target.id === "svgBgClick" || e.target === svg) {
-    e.preventDefault();
-    clearSelection();
-    
-    state.isPanning = true;
+  // Not touching node or line -> pan canvas
+  e.preventDefault();
+  clearSelection();
+  
+  state.isPanning = true;
+  if (e.touches && e.touches.length > 0) {
     const touch = e.touches[0];
     state.dragOffset.x = touch.clientX - state.panX;
     state.dragOffset.y = touch.clientY - state.panY;
@@ -947,6 +966,31 @@ function onTouchStart(e) {
 }
 
 function onTouchMove(e) {
+  if (e.touches.length === 2 && state.lastTouchDistance) {
+    e.preventDefault();
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    const factor = distance / state.lastTouchDistance;
+    
+    const touch0 = e.touches[0];
+    const touch1 = e.touches[1];
+    const rect = svg.getBoundingClientRect();
+    const midX = ((touch0.clientX + touch1.clientX) / 2) - rect.left;
+    const midY = ((touch0.clientY + touch1.clientY) / 2) - rect.top;
+    
+    const newZoom = Math.min(Math.max(state.zoom * factor, 0.15), 4.0);
+    
+    state.panX = midX - (midX - state.panX) * (newZoom / state.zoom);
+    state.panY = midY - (midY - state.panY) * (newZoom / state.zoom);
+    state.zoom = newZoom;
+    
+    state.lastTouchDistance = distance;
+    applyViewTransform();
+    return;
+  }
+
   if (state.draggedNode) {
     e.preventDefault();
     const pt = getTouchCoords(e);
@@ -976,6 +1020,7 @@ function onTouchMove(e) {
 function onTouchEnd(e) {
   state.draggedNode = null;
   state.isPanning = false;
+  state.lastTouchDistance = null;
 }
 
 // ----------------------------------------------------
@@ -1009,13 +1054,18 @@ function selectElement(type, id) {
   state.selectedType = type;
   
   // Highlight visually
-  document.querySelectorAll(".genogram-node, .genogram-line").forEach(el => {
+  document.querySelectorAll(".genogram-node, [data-id], .genogram-line").forEach(el => {
     el.classList.remove("selected");
   });
   
   const svgEl = document.querySelector(`[data-id="${id}"]`);
   if (svgEl) {
     svgEl.classList.add("selected");
+    // Also highlight the path inside it if it's a line
+    const pathEl = svgEl.querySelector(".genogram-line");
+    if (pathEl) {
+      pathEl.classList.add("selected");
+    }
   }
   
   // Update Selection Header
@@ -1065,7 +1115,7 @@ function clearSelection() {
   state.selectedId = null;
   state.selectedType = null;
   
-  document.querySelectorAll(".genogram-node, .genogram-line").forEach(el => {
+  document.querySelectorAll(".genogram-node, [data-id], .genogram-line").forEach(el => {
     el.classList.remove("selected");
   });
   

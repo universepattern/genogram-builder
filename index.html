@@ -92,6 +92,39 @@
 
                 <!-- Tab Panel 1: Build Tree (Contains Add Forms) -->
                 <div id="buildPanel" class="tab-panel active">
+                    <!-- ACCORDION SECTION 0: QUICK GUIDE -->
+                    <div class="sidebar-section">
+                        <div class="section-header">
+                            <h2>📖 How to Use (Quick Guide)</h2>
+                        </div>
+                        <div class="section-content help-content" style="font-size: 13px; color: var(--text-muted); line-height: 1.6; display: flex; flex-direction: column; gap: 10px; padding-top: 12px; padding-bottom: 12px;">
+                            <p>Follow this simple workflow to draw your family tree:</p>
+                            
+                            <div class="help-step" style="border-left: 2px solid var(--primary-accent); padding-left: 10px; margin-bottom: 6px;">
+                                <strong style="color: var(--text-main); display: block;">1. Spawn Members</strong>
+                                Click any gender shape in the <strong>bottom legend</strong> (e.g. <em>Male (Add)</em>) to place a new member at the center of the screen.
+                            </div>
+                            
+                            <div class="help-step" style="border-left: 2px solid var(--primary-accent); padding-left: 10px; margin-bottom: 6px;">
+                                <strong style="color: var(--text-main); display: block;">2. Edit Details</strong>
+                                The editor opens automatically on creation. Type their name, set age/years/medical conditions, and click <strong>Save Changes</strong>.
+                            </div>
+                            
+                            <div class="help-step" style="border-left: 2px solid var(--primary-accent); padding-left: 10px; margin-bottom: 6px;">
+                                <strong style="color: var(--text-main); display: block;">3. Connect Partners</strong>
+                                Click one member, select <strong>Use as Partner A</strong>. Click their partner, select <strong>Use as Partner B</strong>. Go to section 2 in the sidebar and click <strong>Connect Partners</strong>.
+                            </div>
+                            
+                            <div class="help-step" style="border-left: 2px solid var(--primary-accent); padding-left: 10px; margin-bottom: 6px;">
+                                <strong style="color: var(--text-main); display: block;">4. Link Children</strong>
+                                Click the connection line between parents, select <strong>Use as Parent Pair</strong>. Click a child node, select <strong>Use as Child</strong>. Click <strong>Link Child</strong> in the sidebar.
+                            </div>
+                            
+                            <p style="font-size: 11.5px; border-top: 1px dashed var(--border-light); padding-top: 8px; margin-top: 4px;">
+                                💡 <strong>Tip:</strong> Drag any member on the canvas to rearrange them. They automatically snap to the grid and avoid overlaps!
+                            </p>
+                        </div>
+                    </div>
                     <!-- ACCORDION SECTION 1: INDIVIDUALS -->
                     <div class="sidebar-section active">
                         <div class="section-header">
@@ -357,11 +390,27 @@
 
                     <!-- Instruction overlay if empty -->
                     <div id="canvasOverlay" class="canvas-overlay">
-                        <div class="overlay-card">
-                            <h3>Let's Draw Your Genogram</h3>
-                            <p>Choose one of the presets in the top bar to see an example instantly, or use the forms on the left to start adding family members and connecting their relationships.</p>
-                            <div class="overlay-tips">
-                                <span>💡 <strong>Tip:</strong> You can drag individuals around to lay them out exactly how you like!</span>
+                        <div class="overlay-card" style="text-align: left; max-width: 500px; padding: 30px;">
+                            <h3 style="font-family: var(--font-serif); font-size: 24px; color: var(--text-main); margin-bottom: 12px; text-align: center;">Welcome to Genogram.studio</h3>
+                            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.6; text-align: center;">An interactive academic tool to build clinical family trees. Follow these simple steps to start:</p>
+                            
+                            <div class="overlay-steps-list" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                                <div style="display: flex; gap: 12px;">
+                                    <span style="background: var(--primary-accent); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0;">1</span>
+                                    <p style="margin: 0; font-size: 13.5px; color: var(--text-main);">Click <strong>Male (Add)</strong> or <strong>Female (Add)</strong> in the legend at the bottom of the screen to spawn a member.</p>
+                                </div>
+                                <div style="display: flex; gap: 12px;">
+                                    <span style="background: var(--primary-accent); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0;">2</span>
+                                    <p style="margin: 0; font-size: 13.5px; color: var(--text-main);">Type their name in the Edit panel that pops up and click <strong>Save Changes</strong>.</p>
+                                </div>
+                                <div style="display: flex; gap: 12px;">
+                                    <span style="background: var(--primary-accent); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0;">3</span>
+                                    <p style="margin: 0; font-size: 13.5px; color: var(--text-main);">Use the <strong>shortcuts</strong> inside the Edit panel to quickly assign partners/children and connect them.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="overlay-tips" style="background-color: rgba(130, 111, 86, 0.04); padding: 12px; border-radius: 8px; font-size: 12.5px; color: var(--text-muted); line-height: 1.5;">
+                                💡 <strong>Or load a template:</strong> Select a preloaded case study from the <strong>Template</strong> dropdown in the top bar to see examples immediately.
                             </div>
                         </div>
                     </div>
