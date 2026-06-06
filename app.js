@@ -634,6 +634,7 @@ function addNewPersonWithGender(gender) {
     isProband: false,
     isAdopted: false,
     traits: [],
+    medicalNotes: "",
     x: freePos.x,
     y: freePos.y
   };
@@ -863,6 +864,7 @@ function setupEventListeners() {
     const isDeceased = document.getElementById("pDeceased").checked;
     const isProband = document.getElementById("pProband").checked;
     const isAdopted = document.getElementById("pAdopted").checked;
+    const medicalNotes = document.getElementById("pMedicalNotes") ? document.getElementById("pMedicalNotes").value : "";
     
     // Read traits checkboxes
     const traits = [];
@@ -959,6 +961,7 @@ function setupEventListeners() {
       isProband,
       isAdopted,
       traits,
+      medicalNotes,
       x: freePos.x,
       y: freePos.y
     };
@@ -1989,10 +1992,14 @@ function showSelectionDetails() {
           </div>
         </div>
         <div class="form-field">
-          <label>Medical Conditions</label>
+          <label>Medical Traits / Conditions</label>
           <div class="traits-checkbox-list">
             ${traitsList}
           </div>
+        </div>
+        <div class="form-field">
+          <label for="editMedicalNotes">Medical Traits / Conditions (Notes)</label>
+          <input type="text" id="editMedicalNotes" value="${p.medicalNotes || ''}" class="cream-input" placeholder="e.g. Hypertension at age 50">
         </div>
         <div class="selection-actions" style="display: flex; flex-direction: column; gap: 8px;">
           <div style="display: flex; gap: 8px;">
@@ -2022,13 +2029,14 @@ function showSelectionDetails() {
       const isDeceased = document.getElementById("editDeceased").checked;
       const isProband = document.getElementById("editProband").checked;
       const isAdopted = document.getElementById("editAdopted").checked;
+      const medicalNotes = document.getElementById("editMedicalNotes").value;
       
       const traits = [];
       document.querySelectorAll(".edit-trait-cb:checked").forEach(cb => {
         traits.push(cb.value);
       });
       
-      updatePerson(p.id, { name, gender, age, birthYear, deathYear, isDeceased, isProband, isAdopted, traits });
+      updatePerson(p.id, { name, gender, age, birthYear, deathYear, isDeceased, isProband, isAdopted, traits, medicalNotes });
       clearSelection();
     });
     

@@ -589,12 +589,21 @@ const Exporter = {
         const statStr = p.isDeceased ? `Deceased (d. ${p.deathYear || 'N/A'})` : 'Alive';
         doc.text(statStr, 92, rowY + 5.5);
         
-        const traitNames = p.traits.map(t => {
+        let traitNames = p.traits.map(t => {
           if (t.startsWith('custom_')) {
             return t.replace('custom_', '').split('_').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
           }
           return t.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        }).join(', ') || 'Healthy / No mapped traits';
+        }).join(', ');
+        if (p.medicalNotes) {
+          traitNames = traitNames ? `${traitNames}; ${p.medicalNotes}` : p.medicalNotes;
+        }
+        if (!traitNames) {
+          traitNames = 'Healthy / No mapped traits';
+        }
+        if (traitNames.length > 42) {
+          traitNames = traitNames.substring(0, 39) + "...";
+        }
         doc.text(traitNames, 120, rowY + 5.5);
         
         rowY += 8;
@@ -642,12 +651,18 @@ const Exporter = {
         const genderText = p.gender === 'M' ? 'Male' : (p.gender === 'F' ? 'Female' : 'Other');
         const statusText = p.isDeceased ? `Deceased (d. ${p.deathYear || 'N/A'})` : 'Alive';
         const ageText = p.age || 'Unknown';
-        const traitsList = p.traits.map(t => {
+        let traitsList = p.traits.map(t => {
           if (t.startsWith('custom_')) {
             return t.replace('custom_', '').split('_').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
           }
           return t.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        }).join(', ') || 'None';
+        }).join(', ');
+        if (p.medicalNotes) {
+          traitsList = traitsList ? `${traitsList}; ${p.medicalNotes}` : p.medicalNotes;
+        }
+        if (!traitsList) {
+          traitsList = 'None';
+        }
         
         let nameTxt = p.name || "Unnamed Individual";
         const proband = people.find(item => item.isProband);
