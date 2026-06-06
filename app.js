@@ -1809,7 +1809,20 @@ function render() {
         // Resolve pattern or color fill
         let fillStyle = "";
         if (state.isColorMode) {
-          fillStyle = `fill="var(--trait-${traitId.replace('disease', 'heart').replace('tension', 'hyper').replace('abuse', 'substance')})"`;
+          // Explicit map: trait ID → CSS color value (must match legend swatches)
+          const TRAIT_COLORS = {
+            heart_disease: '#d9625d',
+            diabetes: '#cfa140',
+            hypertension: '#4da5bc',
+            cancer: '#8b6db8',
+            depression: '#66ad75',
+            substance_abuse: '#a35a58',
+            asthma: '#d6874b',
+            hemophilia: '#b84f4f',
+            prediabetic: '#e3c16f',
+          };
+          const color = TRAIT_COLORS[traitId] || '#999999';
+          fillStyle = `fill="${color}"`;
         } else {
           fillStyle = `fill="url(#pat_${traitId})"`;
         }
