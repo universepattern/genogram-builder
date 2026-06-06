@@ -2104,21 +2104,21 @@ function showSelectionDetails() {
       relPartnerA.value = p.id;
       switchTab('build');
       const sections = document.querySelectorAll(".sidebar-section");
-      if (sections[1]) sections[1].classList.add("active");
+      if (sections[0]) sections[0].classList.add("active");
     });
     
     document.getElementById("setPartnerBBtn").addEventListener("click", () => {
       relPartnerB.value = p.id;
       switchTab('build');
       const sections = document.querySelectorAll(".sidebar-section");
-      if (sections[1]) sections[1].classList.add("active");
+      if (sections[0]) sections[0].classList.add("active");
     });
     
     document.getElementById("setChildBtn").addEventListener("click", () => {
       childSelect.value = p.id;
       switchTab('build');
       const sections = document.querySelectorAll(".sidebar-section");
-      if (sections[1]) sections[1].classList.add("active");
+      if (sections[0]) sections[0].classList.add("active");
     });
     
   } else if (state.selectedType === 'relationship') {

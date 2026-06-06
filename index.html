@@ -119,9 +119,67 @@
                 <!-- Tab Panel 1: Build Tree (Contains Add Forms) -->
                 <div id="buildPanel" class="tab-panel active">
                 <!-- ACCORDION SECTION 1: INDIVIDUALS -->
+                    <!-- ACCORDION SECTION 1: RELATIONSHIPS -->
                     <div class="sidebar-section active">
                         <div class="section-header">
-                            <h2>1. Family Members</h2>
+                            <h2>1. Relationships & Children</h2>
+                        </div>
+                        <div class="section-content">
+                            <!-- Add Partner Relationship Form -->
+                            <div class="sub-section">
+                                <h3>Spouse / Partner Link</h3>
+                                <form id="addRelationshipForm" class="form-container">
+                                    <div class="form-field">
+                                        <label for="relPartnerA">Partner A</label>
+                                        <select id="relPartnerA" required class="cream-select">
+                                            <option value="" disabled selected>Select person...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="relPartnerB">Partner B</label>
+                                        <select id="relPartnerB" required class="cream-select">
+                                            <option value="" disabled selected>Select person...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="relType">Relationship Type</label>
+                                        <select id="relType" class="cream-select">
+                                            <option value="married">Married (Solid Line)</option>
+                                            <option value="divorced">Divorced (Double Slashed Line)</option>
+                                            <option value="separated">Separated (Single Slashed Line)</option>
+                                            <option value="cohabitation">Cohabitation / Dating (Dashed Line)</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="secondary-btn">Connect Partners</button>
+                                </form>
+                            </div>
+
+                            <!-- Add Child Form -->
+                            <div class="sub-section">
+                                <h3>Add Child to Parents</h3>
+                                <form id="addChildForm" class="form-container">
+                                    <div class="form-field">
+                                        <label for="childSelect">Select Child</label>
+                                        <select id="childSelect" required class="cream-select">
+                                            <option value="" disabled selected>Select child...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="parentLinkSelect">Select Parent Pair / Single Parent</label>
+                                        <select id="parentLinkSelect" required class="cream-select">
+                                            <option value="" disabled selected>Select parents...</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="secondary-btn">Link Child</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACCORDION SECTION 2: INDIVIDUALS -->
+                    <div class="sidebar-section">
+                        <div class="section-header">
+                            <h2>2. Family Members</h2>
                             <span class="badge" id="peopleCountBadge">0</span>
                         </div>
                         <div class="section-content">
@@ -209,63 +267,6 @@
                                 </div>
                                 <button type="submit" class="primary-btn">Add Family Member</button>
                             </form>
-                        </div>
-                    </div>
-
-                    <!-- ACCORDION SECTION 2: RELATIONSHIPS -->
-                    <div class="sidebar-section">
-                        <div class="section-header">
-                            <h2>2. Relationships & Children</h2>
-                        </div>
-                        <div class="section-content">
-                            <!-- Add Partner Relationship Form -->
-                            <div class="sub-section">
-                                <h3>Spouse / Partner Link</h3>
-                                <form id="addRelationshipForm" class="form-container">
-                                    <div class="form-field">
-                                        <label for="relPartnerA">Partner A</label>
-                                        <select id="relPartnerA" required class="cream-select">
-                                            <option value="" disabled selected>Select person...</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-field">
-                                        <label for="relPartnerB">Partner B</label>
-                                        <select id="relPartnerB" required class="cream-select">
-                                            <option value="" disabled selected>Select person...</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-field">
-                                        <label for="relType">Relationship Type</label>
-                                        <select id="relType" class="cream-select">
-                                            <option value="married">Married (Solid Line)</option>
-                                            <option value="divorced">Divorced (Double Slashed Line)</option>
-                                            <option value="separated">Separated (Single Slashed Line)</option>
-                                            <option value="cohabitation">Cohabitation / Dating (Dashed Line)</option>
-                                        </select>
-                                    </div>
-                                    <button type="submit" class="secondary-btn">Connect Partners</button>
-                                </form>
-                            </div>
-
-                            <!-- Add Child Form -->
-                            <div class="sub-section">
-                                <h3>Add Child to Parents</h3>
-                                <form id="addChildForm" class="form-container">
-                                    <div class="form-field">
-                                        <label for="childSelect">Select Child</label>
-                                        <select id="childSelect" required class="cream-select">
-                                            <option value="" disabled selected>Select child...</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-field">
-                                        <label for="parentLinkSelect">Select Parent Pair / Single Parent</label>
-                                        <select id="parentLinkSelect" required class="cream-select">
-                                            <option value="" disabled selected>Select parents...</option>
-                                        </select>
-                                    </div>
-                                    <button type="submit" class="secondary-btn">Link Child</button>
-                                </form>
-                            </div>
                         </div>
                     </div>
                 </div>
