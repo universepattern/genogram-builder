@@ -56,17 +56,15 @@ const Exporter = {
     return cssText;
   },
 
-  // Helper: Build a self-contained SVG legend block
   buildLegendSvg(isColorMode, diagramWidth) {
     const W = Math.max(diagramWidth, 700);
-    const H = 110; // legend strip height
     const bg = isColorMode ? '#faf9f6' : '#ffffff';
     const textColor = isColorMode ? '#3a3028' : '#000000';
     const mutedColor = isColorMode ? '#826f56' : '#555555';
     const borderColor = '#d4cbb8';
 
     // ── Trait definitions ──────────────────────────────
-    const traits = [
+    const defaultTraits = [
       { label: 'Heart',       color: '#d9625d', bw: 'horiz'   },
       { label: 'Diabetes',    color: '#cfa140', bw: 'vert'    },
       { label: 'Hypertension',color: '#4da5bc', bw: 'diag'    },
@@ -77,6 +75,29 @@ const Exporter = {
       { label: 'Prediabetic', color: '#e3c16f', bw: 'zigzag'  },
     ];
 
+    const traits = [...defaultTraits];
+    if (typeof ALL_TRAITS !== 'undefined') {
+      ALL_TRAITS.forEach(t => {
+        if (t.isCustom) {
+          traits.push({
+            label: t.name,
+            color: t.color,
+            bw: t.id
+          });
+        }
+      });
+    }
+
+    // Dynamic patterns
+    let customPatternDefs = '';
+    const defsElement = document.querySelector("#genogramSvg defs");
+    if (defsElement) {
+      const patterns = defsElement.querySelectorAll("pattern[id^='pat_custom_']");
+      patterns.forEach(p => {
+        customPatternDefs += p.outerHTML + '\n';
+      });
+    }
+
     // Build SVG defs for B&W hatching patterns (small 12×12 tiles)
     const patternDefs = `
       <defs>
@@ -85,9 +106,10 @@ const Exporter = {
         <pattern id="leg_diag"     width="12" height="12" patternUnits="userSpaceOnUse"><line x1="0" y1="12" x2="12" y2="0"  stroke="#000" stroke-width="1.2"/><line x1="-6" y1="12" x2="6"  y2="0"  stroke="#000" stroke-width="1.2"/><line x1="6" y1="12" x2="18" y2="0" stroke="#000" stroke-width="1.2"/></pattern>
         <pattern id="leg_cross"    width="12" height="12" patternUnits="userSpaceOnUse"><line x1="0" y1="12" x2="12" y2="0"  stroke="#000" stroke-width="1.2"/><line x1="0" y1="0"  x2="12" y2="12" stroke="#000" stroke-width="1.2"/></pattern>
         <pattern id="leg_dots"     width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="1.5" fill="#000"/><circle cx="10" cy="10" r="1.5" fill="#000"/><circle cx="4" cy="10" r="1.5" fill="#000"/><circle cx="10" cy="4" r="1.5" fill="#000"/></pattern>
-        <pattern id="leg_diagback" width="12" height="12" patternUnits="userSpaceOnUse"><line x1="0" y1="0"  x2="12" y2="12" stroke="#000" stroke-width="1.2"/><line x1="-6" y1="0" x2="6" y2="12"  stroke="#000" stroke-width="1.2"/><line x1="6" y1="0" x2="18" y2="12" stroke="#000" stroke-width="1.2"/></pattern>
+        <pattern id="leg_diagback" width="12" height="12" patternUnits="userSpaceOnUse"><line x1="0" y1="0"  x2="12" y2="12" stroke="#000" stroke-width="1.2"/><line x1="-6" y1="0" x2="6"  y2="12"  stroke="#000" stroke-width="1.2"/><line x1="6" y1="0" x2="18" y2="12" stroke="#000" stroke-width="1.2"/></pattern>
         <pattern id="leg_sparse"   width="12" height="12" patternUnits="userSpaceOnUse"><line x1="0" y1="8"  x2="12" y2="8"  stroke="#000" stroke-width="1.2"/></pattern>
         <pattern id="leg_zigzag"   width="12" height="12" patternUnits="userSpaceOnUse"><polyline points="0,10 3,4 6,10 9,4 12,10" fill="none" stroke="#000" stroke-width="1.2"/></pattern>
+        ${customPatternDefs}
       </defs>`;
 
     // ── Row 1: Shapes & Status ─────────────────────────
@@ -147,16 +169,24 @@ const Exporter = {
     let traitsRow = `<g transform="translate(16, 80)">
         <text x="0" y="0" font-family="Outfit,sans-serif" font-size="8" font-weight="700" fill="${mutedColor}">MEDICAL CONDITIONS (quadrant shading)</text>`;
     let tx = 0;
+    let ty = 6;
     traits.forEach(t => {
+      const itemWidth = swatchSize + 3 + t.label.length * 5.2 + 8;
+      if (tx > 0 && tx + itemWidth > W - 32) {
+        tx = 0;
+        ty += 18;
+      }
       const swatchFill = isColorMode
         ? `fill="${t.color}"`
-        : `fill="url(#leg_${t.bw})"`;
+        : `fill="url(#pat_${t.bw})"`;
       traitsRow += `
-        <rect x="${tx}" y="6" width="${swatchSize}" height="${swatchSize}" ${swatchFill} stroke="#999" stroke-width="0.8"/>
-        <text x="${tx + swatchSize + 3}" y="16" font-family="Outfit,sans-serif" font-size="8.5" fill="${textColor}">${t.label}</text>`;
-      tx += swatchSize + 3 + t.label.length * 5.2 + 8;
+        <rect x="${tx}" y="${ty}" width="${swatchSize}" height="${swatchSize}" ${swatchFill} stroke="#999" stroke-width="0.8"/>
+        <text x="${tx + swatchSize + 3}" y="${ty + 10}" font-family="Outfit,sans-serif" font-size="8.5" fill="${textColor}">${t.label}</text>`;
+      tx += itemWidth;
     });
     traitsRow += `</g>`;
+
+    const H = 84 + ty + 12;
 
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
       ${patternDefs}
@@ -174,7 +204,7 @@ const Exporter = {
   },
 
   // Helper: Generate standalone SVG element string with embedded styles
-  generateStandaloneSvgString(svgElement, people, isColorMode) {
+  generateStandaloneSvgString(svgElement, people, isColorMode, excludeLegend = false) {
     const clone = svgElement.cloneNode(true);
     
     // Get actual bounding box of content
@@ -185,6 +215,78 @@ const Exporter = {
     if (viewportGroup) {
       viewportGroup.removeAttribute("transform");
     }
+    
+    // ── Strip grid lines — never export the grid unless checkbox is checked ──
+    const gridGroup = clone.querySelector("#gridGroup");
+    if (gridGroup) gridGroup.remove();
+    // Also remove any loose grid-pattern lines (class or data attribute)
+    clone.querySelectorAll(".grid-line, [data-grid]").forEach(el => el.remove());
+    
+    // Check grid checkbox
+    const bgClick = clone.querySelector("#svgBgClick");
+    const exportGrid = document.getElementById("exportGridCb") ? document.getElementById("exportGridCb").checked : false;
+    if (bgClick && !exportGrid) {
+      bgClick.setAttribute("fill", "none");
+    }
+
+    // Check legend checkbox
+    const exportLegend = !excludeLegend && (document.getElementById("exportLegendCb") ? document.getElementById("exportLegendCb").checked : true);
+    let finalW = bbox.width;
+    let finalH = bbox.height;
+    let finalX = bbox.x;
+    
+    if (exportLegend) {
+      const legendStr = this.buildLegendSvg(isColorMode, bbox.width);
+      const parser = new DOMParser();
+      const legendDoc = parser.parseFromString(legendStr, "image/svg+xml");
+      const legendSvg = legendDoc.querySelector("svg");
+      if (legendSvg) {
+        const legendH = parseFloat(legendSvg.getAttribute("height"));
+        const legendW = parseFloat(legendSvg.getAttribute("width"));
+        
+        const legendGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        
+        // Move defs children
+        const legendDefs = legendSvg.querySelector("defs");
+        if (legendDefs) {
+          const cloneDefs = clone.querySelector("defs") || clone.insertBefore(document.createElementNS("http://www.w3.org/2000/svg", "defs"), clone.firstChild);
+          while (legendDefs.firstChild) {
+            cloneDefs.appendChild(legendDefs.firstChild);
+          }
+          legendSvg.removeChild(legendDefs);
+        }
+        
+        while (legendSvg.firstChild) {
+          legendGroup.appendChild(legendSvg.firstChild);
+        }
+        
+        clone.appendChild(legendGroup);
+        
+        finalW = Math.max(bbox.width, legendW);
+        finalH = bbox.height + legendH;
+        
+        let offsetX = 0;
+        if (legendW > bbox.width) {
+          offsetX = (legendW - bbox.width) / 2;
+          if (viewportGroup) {
+            viewportGroup.setAttribute("transform", `translate(${offsetX}, 0)`);
+          }
+        }
+        
+        finalX = bbox.x - offsetX;
+        legendGroup.setAttribute("transform", `translate(${finalX}, ${bbox.y + bbox.height})`);
+      }
+    }
+
+    // Set viewport dimensions — proper fit, no stretching
+    clone.setAttribute("viewBox", `${finalX} ${bbox.y} ${finalW} ${finalH}`);
+    clone.setAttribute("width", finalW);
+    clone.setAttribute("height", finalH);
+    // Remove any fixed width/height that might cause stretching
+    clone.style.width = '';
+    clone.style.height = '';
+    clone.style.minWidth = '';
+    clone.style.minHeight = '';
     
     // Set style class on SVG root depending on mode
     if (!isColorMode) {
@@ -200,45 +302,22 @@ const Exporter = {
     const styleElement = document.createElementNS("http://www.w3.org/2000/svg", "style");
     styleElement.textContent = this.getStyles();
     clone.insertBefore(styleElement, clone.firstChild);
-
-    // ── Build composite SVG: diagram + legend strip ────
-    const LEGEND_H = 110;
-    const totalW = bbox.width;
-    const totalH = bbox.height + LEGEND_H;
-
+    
+    // Serialize — clean diagram only, no legend
     const serializer = new XMLSerializer();
-
-    // Diagram SVG — positioned at top with correct viewBox
-    clone.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
-    clone.setAttribute("width", bbox.width);
-    clone.setAttribute("height", bbox.height);
-    const diagSvgString = serializer.serializeToString(clone);
-
-    // Legend SVG string
-    const legendSvgString = this.buildLegendSvg(isColorMode, totalW);
-
-    // Wrap both inside a composite outer SVG
-    const bg = isColorMode ? '#faf9f6' : '#ffffff';
-    const compositeSvg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-     width="${totalW}" height="${totalH}">
-  <rect width="${totalW}" height="${totalH}" fill="${bg}"/>
-  <!-- Diagram -->
-  <image href="data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(diagSvgString)))}"
-         x="0" y="0" width="${bbox.width}" height="${bbox.height}"/>
-  <!-- Legend -->
-  <image href="data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(legendSvgString)))}"
-         x="0" y="${bbox.height}" width="${totalW}" height="${LEGEND_H}"/>
-</svg>`;
-
-    return compositeSvg;
+    return serializer.serializeToString(clone);
   },
 
   // Export to Raster Image (PNG or JPEG)
   exportImage(svgElement, people, isColorMode, format = 'png') {
-    const bbox = this.getBoundingBox(people);
     const svgString = this.generateStandaloneSvgString(svgElement, people, isColorMode);
     
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgString, "image/svg+xml");
+    const svgRoot = svgDoc.querySelector("svg");
+    const exportW = parseFloat(svgRoot.getAttribute("width"));
+    const exportH = parseFloat(svgRoot.getAttribute("height"));
+
     // Convert to base64
     const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const blobUrl = URL.createObjectURL(svgBlob);
@@ -249,8 +328,8 @@ const Exporter = {
       
       // Scale multiplier for high-DPI crisp print results
       const dpiScale = 3.0; 
-      canvas.width = bbox.width * dpiScale;
-      canvas.height = bbox.height * dpiScale;
+      canvas.width = exportW * dpiScale;
+      canvas.height = exportH * dpiScale;
       
       const ctx = canvas.getContext('2d');
       ctx.imageSmoothingEnabled = true;
@@ -300,9 +379,15 @@ const Exporter = {
   },
 
   // Generate Base64 image internally for PDF & Word exports
-  getBase64Image(svgElement, people, isColorMode, callback) {
-    const bbox = this.getBoundingBox(people);
-    const svgString = this.generateStandaloneSvgString(svgElement, people, isColorMode);
+  getBase64Image(svgElement, people, isColorMode, callback, excludeLegend = false) {
+    const svgString = this.generateStandaloneSvgString(svgElement, people, isColorMode, excludeLegend);
+    
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgString, "image/svg+xml");
+    const svgRoot = svgDoc.querySelector("svg");
+    const exportW = parseFloat(svgRoot.getAttribute("width"));
+    const exportH = parseFloat(svgRoot.getAttribute("height"));
+
     const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const blobUrl = URL.createObjectURL(svgBlob);
     
@@ -310,8 +395,8 @@ const Exporter = {
     img.onload = () => {
       const canvas = document.createElement('canvas');
       const dpiScale = 2.0; // 2x is plenty for PDF inserts
-      canvas.width = bbox.width * dpiScale;
-      canvas.height = bbox.height * dpiScale;
+      canvas.width = exportW * dpiScale;
+      canvas.height = exportH * dpiScale;
       
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = isColorMode ? '#faf9f6' : '#ffffff';
@@ -321,7 +406,7 @@ const Exporter = {
       const dataUrl = canvas.toDataURL('image/png');
       
       URL.revokeObjectURL(blobUrl);
-      callback(dataUrl, bbox.width, bbox.height);
+      callback(dataUrl, exportW, exportH);
     };
     img.onerror = () => {
       URL.revokeObjectURL(blobUrl);
@@ -398,8 +483,9 @@ const Exporter = {
       doc.addImage(pngDataUrl, 'PNG', imgX, imgY, finalW, finalH);
       
       // Legend Title
+      const exportLegend = document.getElementById("exportLegendCb") ? document.getElementById("exportLegendCb").checked : true;
       const legendY = imgY + finalH + 12;
-      if (legendY < 265) {
+      if (exportLegend && legendY < 265) {
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(117, 104, 90);
@@ -486,7 +572,14 @@ const Exporter = {
         doc.setTextColor(60, 51, 42);
         // Name (truncate if too long)
         let nameTxt = p.name || "Unnamed Individual";
-        if (nameTxt.length > 22) nameTxt = nameTxt.substring(0, 20) + "...";
+        const proband = people.find(item => item.isProband);
+        if (proband && typeof window.getRelationshipLabel === 'function') {
+          const role = window.getRelationshipLabel(p.id, proband.id);
+          if (role) {
+            nameTxt += ` (${role})`;
+          }
+        }
+        if (nameTxt.length > 28) nameTxt = nameTxt.substring(0, 26) + "...";
         doc.text(nameTxt, 18, rowY + 5.5);
         
         const genStr = p.gender === 'M' ? 'Male' : (p.gender === 'F' ? 'Female' : 'Other');
@@ -496,7 +589,12 @@ const Exporter = {
         const statStr = p.isDeceased ? `Deceased (d. ${p.deathYear || 'N/A'})` : 'Alive';
         doc.text(statStr, 92, rowY + 5.5);
         
-        const traitNames = p.traits.map(t => t.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')).join(', ') || 'Healthy / No mapped traits';
+        const traitNames = p.traits.map(t => {
+          if (t.startsWith('custom_')) {
+            return t.replace('custom_', '').split('_').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+          }
+          return t.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }).join(', ') || 'Healthy / No mapped traits';
         doc.text(traitNames, 120, rowY + 5.5);
         
         rowY += 8;
@@ -523,7 +621,7 @@ const Exporter = {
       
       // Save PDF
       doc.save(`genogram-report-${Date.now()}.pdf`);
-    });
+    }, true);
   },
 
   // Export to Microsoft Word (DOC)
@@ -544,11 +642,25 @@ const Exporter = {
         const genderText = p.gender === 'M' ? 'Male' : (p.gender === 'F' ? 'Female' : 'Other');
         const statusText = p.isDeceased ? `Deceased (d. ${p.deathYear || 'N/A'})` : 'Alive';
         const ageText = p.age || 'Unknown';
-        const traitsList = p.traits.map(t => t.replace('_', ' ')).join(', ') || 'None';
+        const traitsList = p.traits.map(t => {
+          if (t.startsWith('custom_')) {
+            return t.replace('custom_', '').split('_').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+          }
+          return t.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }).join(', ') || 'None';
         
+        let nameTxt = p.name || "Unnamed Individual";
+        const proband = people.find(item => item.isProband);
+        if (proband && typeof window.getRelationshipLabel === 'function') {
+          const role = window.getRelationshipLabel(p.id, proband.id);
+          if (role) {
+            nameTxt += ` (${role})`;
+          }
+        }
+
         rowsHtml += `
           <tr style="background-color: ${idx % 2 === 1 ? '#FAF7F0' : '#FFFFFF'};">
-            <td style="border: 1px solid #E4DECB; padding: 8px; font-family: sans-serif; font-size: 10pt;">${p.name}</td>
+            <td style="border: 1px solid #E4DECB; padding: 8px; font-family: sans-serif; font-size: 10pt;">${nameTxt}</td>
             <td style="border: 1px solid #E4DECB; padding: 8px; font-family: sans-serif; font-size: 10pt;">${genderText}</td>
             <td style="border: 1px solid #E4DECB; padding: 8px; font-family: sans-serif; font-size: 10pt;">${ageText}</td>
             <td style="border: 1px solid #E4DECB; padding: 8px; font-family: sans-serif; font-size: 10pt;">${statusText}</td>

@@ -69,6 +69,16 @@
                         <span class="arrow-down">▼</span>
                     </button>
                     <div id="exportMenu" class="export-dropdown-menu">
+                        <div class="export-options-panel" onclick="event.stopPropagation();">
+                            <label class="export-option-label">
+                                <input type="checkbox" id="exportGridCb" class="cream-checkbox">
+                                <span>Export with Grid</span>
+                            </label>
+                            <label class="export-option-label">
+                                <input type="checkbox" id="exportLegendCb" class="cream-checkbox" checked>
+                                <span>Export with Legend</span>
+                            </label>
+                        </div>
                         <button id="exportPngBtn" class="export-menu-item">
                             <span class="bullet png">•</span> PNG Image (High-Res)
                         </button>
@@ -163,41 +173,17 @@
                                         <label for="pAdopted" class="checkbox-label">Adopted Status (Shape Brackets)</label>
                                     </div>
                                 </div>
+                                <div class="form-field" style="margin-top: 8px;">
+                                    <label for="pCustomDisease">Add Custom Disease</label>
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="pCustomDisease" placeholder="e.g. Alzheimer's" class="cream-input" style="flex: 1;">
+                                        <button type="button" id="addCustomDiseaseBtn" class="secondary-btn" style="width: auto; padding: 0 14px; margin: 0; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;">+</button>
+                                    </div>
+                                </div>
                                 <div class="form-field">
                                     <label>Medical Traits / Conditions</label>
-                                    <div class="traits-checkbox-list">
-                                        <label class="trait-row" data-trait="heart_disease">
-                                            <input type="checkbox" value="heart_disease" class="trait-cb">
-                                            <span class="trait-row-label">Heart Disease</span>
-                                        </label>
-                                        <label class="trait-row" data-trait="diabetes">
-                                            <input type="checkbox" value="diabetes" class="trait-cb">
-                                            <span class="trait-row-label">Diabetes</span>
-                                        </label>
-                                        <label class="trait-row" data-trait="hypertension">
-                                            <input type="checkbox" value="hypertension" class="trait-cb">
-                                            <span class="trait-row-label">Hypertension</span>
-                                        </label>
-                                        <label class="trait-row" data-trait="cancer">
-                                            <input type="checkbox" value="cancer" class="trait-cb">
-                                            <span class="trait-row-label">Cancer</span>
-                                        </label>
-                                        <label class="trait-row" data-trait="depression">
-                                            <input type="checkbox" value="depression" class="trait-cb">
-                                            <span class="trait-row-label">Depression / Anxiety</span>
-                                        </label>
-                                        <label class="trait-row" data-trait="substance_abuse">
-                                            <input type="checkbox" value="substance_abuse" class="trait-cb">
-                                            <span class="trait-row-label">Substance Abuse</span>
-                                        </label>
-                                        <label class="trait-row" data-trait="asthma">
-                                            <input type="checkbox" value="asthma" class="trait-cb">
-                                            <span class="trait-row-label">Asthma</span>
-                                        </label>
-                                        <label class="trait-row" data-trait="prediabetic">
-                                            <input type="checkbox" value="prediabetic" class="trait-cb">
-                                            <span class="trait-row-label">Prediabetic</span>
-                                        </label>
+                                    <div class="traits-checkbox-list" id="pTraitsList">
+                                        <!-- Dynamically populated from app.js -->
                                     </div>
                                 </div>
                                 <div class="form-field" id="relationFieldContainer" style="display: none; margin-top: 8px; margin-bottom: 8px;">
@@ -209,6 +195,13 @@
                                         <option value="partner">Spouse / Partner (Spawns Right)</option>
                                         <option value="child">Child (Spawns Bottom)</option>
                                     </select>
+                                    <div class="form-field" id="secondParentFieldContainer" style="display: none; margin-top: 8px; margin-bottom: 4px;">
+                                        <label for="pSecondParent">Second Parent / Partner</label>
+                                        <select id="pSecondParent" class="cream-select">
+                                            <option value="none">None (Single Parent)</option>
+                                        </select>
+                                    </div>
+                                    <span id="relationHint" style="font-size: 11px; color: var(--secondary-accent); font-weight: 500; margin-top: 4px; display: none; line-height: 1.3;"></span>
                                 </div>
                                 <button type="submit" class="primary-btn">Add Family Member</button>
                             </form>
@@ -305,6 +298,9 @@
                         </button>
                     </div>
                     <div class="toolbar-right">
+                        <button id="toggleRolesBtn" class="tool-btn-toggle" title="Toggle showing names or relationship roles relative to Proband">
+                            <span>Show Roles</span>
+                        </button>
                         <button id="snapGridBtn" class="tool-btn-toggle active" title="Align nodes to a grid when dragging">
                             <span>Grid Snap</span>
                         </button>

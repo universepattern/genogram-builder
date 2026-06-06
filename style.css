@@ -436,6 +436,23 @@ body {
     flex-direction: column;
     gap: 0;
     margin-top: 6px;
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 4px 6px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    background-color: rgba(130, 111, 86, 0.02);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-light) transparent;
+}
+
+.traits-checkbox-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.traits-checkbox-list::-webkit-scrollbar-thumb {
+    background-color: var(--border-light);
+    border-radius: 4px;
 }
 
 .trait-row {
@@ -1180,14 +1197,14 @@ body {
 .genogram-node rect, 
 .genogram-node circle, 
 .genogram-node polygon {
-    stroke-width: 2px;
+    stroke-width: 1.5px;
     transition: filter 0.2s ease, stroke-width 0.2s ease;
 }
 
 .genogram-node.selected rect, 
 .genogram-node.selected circle, 
 .genogram-node.selected polygon {
-    stroke-width: 3.5px;
+    stroke-width: 3px;
     stroke: var(--primary-accent) !important;
 }
 
@@ -1230,29 +1247,29 @@ body {
 
 /* SVG Line Classes */
 .genogram-line {
-    stroke-width: 2.5px;
+    stroke-width: 1.8px;
     fill: none;
     cursor: pointer;
     transition: stroke-width 0.15s ease, stroke 0.15s ease;
 }
 
 .genogram-line:hover {
-    stroke-width: 4px;
+    stroke-width: 3px;
     stroke: var(--primary-accent) !important;
 }
 
 .genogram-line.selected {
-    stroke-width: 4px;
+    stroke-width: 3px;
     stroke: var(--primary-accent) !important;
 }
 
 .line-slash {
-    stroke-width: 2.5px;
+    stroke-width: 1.8px;
 }
 
 /* Deceased X mark */
 .deceased-x {
-    stroke-width: 2.5px;
+    stroke-width: 1.8px;
     pointer-events: none;
 }
 
@@ -1572,4 +1589,28 @@ body {
 
 .help-dropdown-menu.show {
     display: block;
+}
+
+/* Export options panel */
+.export-options-panel {
+    padding: 12px 16px;
+    background-color: rgba(130, 111, 86, 0.03);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.export-option-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+}
+.export-option-label:hover {
+    color: var(--text-main);
 }

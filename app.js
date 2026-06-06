@@ -14,7 +14,8 @@ const state = {
   panY: 0,
   isPanning: false,
   draggedNode: null,
-  dragOffset: { x: 0, y: 0 }
+  dragOffset: { x: 0, y: 0 },
+  showRelationshipRoles: false
 };
 
 // DOM Elements
@@ -44,6 +45,7 @@ const zoomOutBtn = document.getElementById("zoomOutBtn");
 const zoomResetBtn = document.getElementById("zoomResetBtn");
 const fitViewBtn = document.getElementById("fitViewBtn");
 const snapGridBtn = document.getElementById("snapGridBtn");
+const toggleRolesBtn = document.getElementById("toggleRolesBtn");
 const autoLayoutBtn = document.getElementById("autoLayoutBtn");
 const clearAllBtn = document.getElementById("clearAllBtn");
 const styleBwBtn = document.getElementById("styleBwBtn");
@@ -71,6 +73,365 @@ const ALL_TRAITS = [
   { id: "prediabetic", name: "Prediabetic" }
 ];
 
+function getHashColor(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = Math.abs(hash % 360);
+  return `hsl(${h}, 65%, 50%)`;
+}
+
+function registerCustomTraitPattern(id, index) {
+  const defs = document.querySelector("#genogramSvg defs");
+  if (!defs) return;
+  if (document.getElementById(`pat_${id}`)) return; // already registered
+  
+  // Cycle through a few standard pattern types
+  const patternTypes = [
+    `<pattern id="pat_${id}" width="8" height="8" patternTransform="rotate(30 0 0)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="8" stroke="#000" stroke-width="1.8" /></pattern>`,
+    `<pattern id="pat_${id}" width="8" height="8" patternTransform="rotate(120 0 0)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="8" stroke="#000" stroke-width="1.8" /></pattern>`,
+    `<pattern id="pat_${id}" width="8" height="8" patternUnits="userSpaceOnUse"><line x1="0" y1="4" x2="8" y2="4" stroke="#000" stroke-width="1.8" /></pattern>`,
+    `<pattern id="pat_${id}" width="8" height="8" patternUnits="userSpaceOnUse"><line x1="4" y1="0" x2="4" y2="8" stroke="#000" stroke-width="1.8" /></pattern>`,
+    `<pattern id="pat_${id}" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="none" stroke="#000" stroke-width="1"/><line x1="0" y1="5" x2="10" y2="5" stroke="#000" stroke-width="1"/></pattern>`,
+    `<pattern id="pat_${id}" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 0 5 Q 2.5 2, 5 5 T 10 5" fill="none" stroke="#000" stroke-width="1.5"/></pattern>`,
+    `<pattern id="pat_${id}" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="2" fill="#000" /></pattern>`,
+  ];
+  
+  const patternHtml = patternTypes[index % patternTypes.length];
+  defs.insertAdjacentHTML("beforeend", patternHtml);
+}
+
+function addCustomDisease(name) {
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+  
+  const slug = "custom_" + trimmed.toLowerCase().replace(/[^a-z0-9]/g, "_");
+  const exists = ALL_TRAITS.find(t => t.id === slug);
+  if (exists) return exists;
+  
+  const color = getHashColor(trimmed);
+  const customCount = ALL_TRAITS.filter(t => t.isCustom).length;
+  const bwLines = slug; // reference the slug directly for custom patterns
+  
+  registerCustomTraitPattern(slug, customCount);
+  
+  const newTrait = {
+    id: slug,
+    name: trimmed,
+    isCustom: true,
+    color,
+    bwLines
+  };
+  
+  ALL_TRAITS.push(newTrait);
+  updateLegend();
+  renderTraitsChecklists();
+  
+  return newTrait;
+}
+
+function renderTraitsChecklists() {
+  const pTraitsList = document.getElementById("pTraitsList");
+  if (!pTraitsList) return;
+  
+  pTraitsList.innerHTML = ALL_TRAITS.map(t => {
+    return `
+      <label class="trait-row" data-trait="${t.id}">
+        <input type="checkbox" value="${t.id}" class="trait-cb">
+        <span class="trait-row-label">${t.name}</span>
+      </label>
+    `;
+  }).join("");
+  
+  pTraitsList.querySelectorAll(".trait-row input, .trait-cb").forEach(cb => {
+    cb.addEventListener("change", (e) => {
+      const row = e.target.closest(".trait-row");
+      if (row) {
+        row.classList.toggle("checked", e.target.checked);
+      }
+    });
+  });
+}
+
+function scanAndRegisterCustomTraits() {
+  state.people.forEach(p => {
+    if (p.traits) {
+      p.traits.forEach(t => {
+        if (t.startsWith("custom_")) {
+          const exists = ALL_TRAITS.find(trait => trait.id === t);
+          if (!exists) {
+            let guessedName = t.replace("custom_", "").split("_").filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+            const color = getHashColor(guessedName);
+            const customCount = ALL_TRAITS.filter(trait => trait.isCustom).length;
+            const bwLines = t;
+            
+            registerCustomTraitPattern(t, customCount);
+            
+            ALL_TRAITS.push({
+              id: t,
+              name: guessedName,
+              isCustom: true,
+              color,
+              bwLines
+            });
+          } else {
+            const index = ALL_TRAITS.filter(trait => trait.isCustom).indexOf(exists);
+            registerCustomTraitPattern(t, index >= 0 ? index : 0);
+          }
+        }
+      });
+    }
+  });
+}
+
+// ----------------------------------------------------
+// GRAPH RELATIONSHIP BFS SOLVER
+// ----------------------------------------------------
+
+function getParents(pId) {
+  const parents = [];
+  state.children.forEach(link => {
+    if (link.childId === pId) {
+      if (link.parentType === 'relationship') {
+        const rel = state.relationships.find(r => r.id === link.parentId);
+        if (rel) {
+          const pA = state.people.find(p => p.id === rel.personA);
+          const pB = state.people.find(p => p.id === rel.personB);
+          if (pA) parents.push(pA);
+          if (pB) parents.push(pB);
+        }
+      } else {
+        const p = state.people.find(item => item.id === link.parentId);
+        if (p) parents.push(p);
+      }
+    }
+  });
+  return parents;
+}
+
+function getChildren(pId) {
+  const children = [];
+  
+  // Direct individual children
+  state.children.forEach(link => {
+    if (link.parentType === 'individual' && link.parentId === pId) {
+      const child = state.people.find(p => p.id === link.childId);
+      if (child) children.push(child);
+    }
+  });
+  
+  // Children from partner relationships
+  const partnerRels = state.relationships.filter(r => r.personA === pId || r.personB === pId);
+  partnerRels.forEach(rel => {
+    state.children.forEach(link => {
+      if (link.parentType === 'relationship' && link.parentId === rel.id) {
+        const child = state.people.find(p => p.id === link.childId);
+        if (child && !children.some(c => c.id === child.id)) {
+          children.push(child);
+        }
+      }
+    });
+  });
+  
+  return children;
+}
+
+function getSpouses(pId) {
+  const spouses = [];
+  state.relationships.forEach(rel => {
+    if (rel.personA === pId) {
+      const p = state.people.find(item => item.id === rel.personB);
+      if (p) spouses.push(p);
+    } else if (rel.personB === pId) {
+      const p = state.people.find(item => item.id === rel.personA);
+      if (p) spouses.push(p);
+    }
+  });
+  return spouses;
+}
+
+function getSiblings(pId) {
+  const parents = getParents(pId);
+  if (parents.length === 0) return [];
+  
+  const siblingsMap = new Map();
+  parents.forEach(parent => {
+    const parentChildren = getChildren(parent.id);
+    parentChildren.forEach(child => {
+      if (child.id !== pId) {
+        siblingsMap.set(child.id, child);
+      }
+    });
+  });
+  
+  return Array.from(siblingsMap.values());
+}
+
+function getRelationshipPath(probandId, targetId) {
+  if (probandId === targetId) return [];
+  
+  const queue = [{ id: probandId, path: [] }];
+  const visited = new Set([probandId]);
+  
+  while (queue.length > 0) {
+    const { id, path } = queue.shift();
+    
+    // Get all neighbors and their edge types
+    const parentNodes = getParents(id);
+    const childNodes = getChildren(id);
+    const spouseNodes = getSpouses(id);
+    const siblingNodes = getSiblings(id);
+    
+    // Add neighbors to check
+    const neighbors = [];
+    
+    parentNodes.forEach(p => {
+      neighbors.push({ id: p.id, type: 'PARENT' });
+    });
+    
+    siblingNodes.forEach(p => {
+      neighbors.push({ id: p.id, type: 'SIBLING' });
+    });
+    
+    spouseNodes.forEach(p => {
+      neighbors.push({ id: p.id, type: 'SPOUSE' });
+    });
+    
+    childNodes.forEach(p => {
+      neighbors.push({ id: p.id, type: 'CHILD' });
+    });
+    
+    for (const n of neighbors) {
+      if (n.id === targetId) {
+        return [...path, n.type];
+      }
+      if (!visited.has(n.id)) {
+        visited.add(n.id);
+        queue.push({ id: n.id, path: [...path, n.type] });
+      }
+    }
+  }
+  
+  return null; // No path found
+}
+
+function getRelationshipLabel(targetId, probandId) {
+  if (!probandId) return "";
+  
+  const target = state.people.find(p => p.id === targetId);
+  if (!target) return "";
+  
+  if (targetId === probandId) {
+    return "You";
+  }
+  
+  const path = getRelationshipPath(probandId, targetId);
+  if (!path) return "";
+  
+  const pathKey = path.join(',');
+  const gender = target.gender; // 'M', 'F', 'X', 'P'
+  
+  // Mapping paths to relationship roles
+  switch (pathKey) {
+    case 'PARENT':
+      if (gender === 'M') return "Father";
+      if (gender === 'F') return "Mother";
+      return "Parent";
+      
+    case 'SIBLING':
+      if (gender === 'M') return "Brother";
+      if (gender === 'F') return "Sister";
+      return "Sibling";
+      
+    case 'SPOUSE':
+      if (gender === 'M') return "Husband";
+      if (gender === 'F') return "Wife";
+      return "Partner";
+      
+    case 'CHILD':
+      if (gender === 'M') return "Son";
+      if (gender === 'F') return "Daughter";
+      return "Child";
+      
+    case 'PARENT,PARENT':
+      if (gender === 'M') return "Grandfather";
+      if (gender === 'F') return "Grandmother";
+      return "Grandparent";
+      
+    case 'PARENT,SIBLING':
+      if (gender === 'M') return "Uncle";
+      if (gender === 'F') return "Aunt";
+      return "Aunt/Uncle";
+      
+    case 'PARENT,SIBLING,CHILD':
+      return "Cousin";
+      
+    case 'PARENT,SIBLING,SPOUSE':
+      if (gender === 'M') return "Uncle";
+      if (gender === 'F') return "Aunt";
+      return "Aunt/Uncle";
+      
+    case 'PARENT,SPOUSE':
+      if (gender === 'M') return "Stepfather";
+      if (gender === 'F') return "Stepmother";
+      return "Step-parent";
+      
+    case 'PARENT,SPOUSE,CHILD':
+      if (gender === 'M') return "Stepbrother";
+      if (gender === 'F') return "Stepsister";
+      return "Step-sibling";
+      
+    case 'SIBLING,SPOUSE':
+    case 'SPOUSE,SIBLING':
+      if (gender === 'M') return "Brother-in-law";
+      if (gender === 'F') return "Sister-in-law";
+      return "Sibling-in-law";
+      
+    case 'SPOUSE,PARENT':
+      if (gender === 'M') return "Father-in-law";
+      if (gender === 'F') return "Mother-in-law";
+      return "Parent-in-law";
+      
+    case 'CHILD,SPOUSE':
+      if (gender === 'M') return "Son-in-law";
+      if (gender === 'F') return "Daughter-in-law";
+      return "Child-in-law";
+      
+    case 'CHILD,CHILD':
+      if (gender === 'M') return "Grandson";
+      if (gender === 'F') return "Granddaughter";
+      return "Grandchild";
+      
+    case 'SIBLING,CHILD':
+      if (gender === 'M') return "Nephew";
+      if (gender === 'F') return "Niece";
+      return "Niece/Nephew";
+      
+    case 'PARENT,PARENT,PARENT':
+      if (gender === 'M') return "Great-grandfather";
+      if (gender === 'F') return "Great-grandmother";
+      return "Great-grandparent";
+      
+    case 'CHILD,CHILD,CHILD':
+      if (gender === 'M') return "Great-grandson";
+      if (gender === 'F') return "Great-granddaughter";
+      return "Great-grandchild";
+      
+    case 'PARENT,PARENT,SIBLING':
+      if (gender === 'M') return "Great-uncle";
+      if (gender === 'F') return "Great-aunt";
+      return "Great-aunt/uncle";
+      
+    default:
+      return pathKey;
+  }
+}
+
+// Expose solver globally for exporter
+window.getRelationshipLabel = getRelationshipLabel;
+
+
 // -----------------------------------------------
 // LEGEND: Dynamic mode-aware legend builder
 // -----------------------------------------------
@@ -80,8 +441,7 @@ function updateLegend() {
   // --- 1. Medical Conditions legend row ---
   const medRow = document.querySelector('.legend-bar-section:nth-child(3) .legend-row');
   if (medRow) {
-    // Trait definitions: id, label, color (for Color mode), SVG pattern (for B&W)
-    const traits = [
+    const defaultTraits = [
       { id: 'heart_disease',   label: 'Heart',      color: '#d9625d', bwLines: 'horizontal' },
       { id: 'diabetes',        label: 'Diabetes',   color: '#cfa140', bwLines: 'vertical'   },
       { id: 'hypertension',    label: 'Hypertension', color: '#4da5bc', bwLines: 'diagonal'  },
@@ -92,9 +452,29 @@ function updateLegend() {
       { id: 'prediabetic',     label: 'Prediabetic',color: '#e3c16f', bwLines: 'zigzag'     },
     ];
 
+    // Combine default and custom traits
+    const traits = [...defaultTraits];
+    ALL_TRAITS.forEach(t => {
+      if (t.isCustom) {
+        traits.push({
+          id: t.id,
+          label: t.name,
+          color: t.color,
+          bwLines: t.bwLines
+        });
+      }
+    });
+
     // Inline SVG patterns for B&W legend swatches
-    function bwSwatch(type) {
+    function bwSwatch(type, customId = null) {
       const s = 16; // swatch size
+      if (customId) {
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"
+                  style="border:1px solid #bbb; border-radius:2px; display:inline-block; vertical-align:middle; background:#fff; flex-shrink:0;"
+                  overflow="hidden">
+                  <rect width="${s}" height="${s}" fill="url(#pat_${customId})" />
+                </svg>`;
+      }
       let pattern = '';
       if (type === 'horizontal') {
         pattern = `<line x1="0" y1="4"  x2="${s}" y2="4"  stroke="#000" stroke-width="1.2"/>
@@ -134,9 +514,10 @@ function updateLegend() {
     }
 
     medRow.innerHTML = traits.map(t => {
+      const isCustom = t.id.startsWith('custom_');
       const swatch = colorMode
         ? `<span style="width:16px;height:16px;border-radius:3px;background:${t.color};border:1px solid rgba(0,0,0,0.15);display:inline-block;vertical-align:middle;flex-shrink:0;"></span>`
-        : bwSwatch(t.bwLines);
+        : bwSwatch(t.bwLines, isCustom ? t.id : null);
       return `<span style="display:flex;align-items:center;gap:5px;font-size:11.5px;">${swatch} ${t.label}</span>`;
     }).join('');
   }
@@ -171,6 +552,7 @@ function updateLegend() {
 function init() {
   setupEventListeners();
   updateFormDropdowns();
+  renderTraitsChecklists();
   render();
   
   // Set default view transform
@@ -317,12 +699,21 @@ function deleteChildLink(childId, parentId) {
 }
 
 function loadTemplate(templateName) {
+  // Clear any existing custom traits
+  for (let i = ALL_TRAITS.length - 1; i >= 0; i--) {
+    if (ALL_TRAITS[i].isCustom) {
+      ALL_TRAITS.splice(i, 1);
+    }
+  }
+
   if (templateName === 'blank') {
     state.people = [];
     state.relationships = [];
     state.children = [];
     clearSelection();
     updateFormDropdowns();
+    renderTraitsChecklists();
+    updateLegend();
     peopleCountBadge.textContent = "0";
     hideOverlayIfNeeded();
     render();
@@ -338,6 +729,9 @@ function loadTemplate(templateName) {
   state.children = JSON.parse(JSON.stringify(t.children));
   
   clearSelection();
+  scanAndRegisterCustomTraits();
+  updateLegend();
+  renderTraitsChecklists();
   updateFormDropdowns();
   peopleCountBadge.textContent = state.people.length;
   hideOverlayIfNeeded();
@@ -350,8 +744,16 @@ function clearAll() {
     state.people = [];
     state.relationships = [];
     state.children = [];
+    // Clear custom traits
+    for (let i = ALL_TRAITS.length - 1; i >= 0; i--) {
+      if (ALL_TRAITS[i].isCustom) {
+        ALL_TRAITS.splice(i, 1);
+      }
+    }
     clearSelection();
     updateFormDropdowns();
+    renderTraitsChecklists();
+    updateLegend();
     peopleCountBadge.textContent = "0";
     hideOverlayIfNeeded();
     render();
@@ -487,8 +889,52 @@ function setupEventListeners() {
         spawnX = selected.x + 160;
         spawnY = selected.y;
       } else if (relation === "child") {
-        spawnX = selected.x;
-        spawnY = selected.y + 120;
+        const secondParentVal = document.getElementById("pSecondParent") ? document.getElementById("pSecondParent").value : "none";
+        
+        // Find relationships of the selected parent
+        const parentRels = state.relationships.filter(r => r.personA === selected.id || r.personB === selected.id);
+        
+        // Let's find if there's a target relationship for the parents
+        let targetRel = null;
+        if (secondParentVal !== "none") {
+          targetRel = state.relationships.find(r => 
+            (r.personA === selected.id && r.personB === secondParentVal) ||
+            (r.personA === secondParentVal && r.personB === selected.id)
+          );
+        } else if (parentRels.length === 1) {
+          targetRel = parentRels[0];
+        }
+        
+        // Find siblings under the target parent link (relationship or single parent)
+        let siblingLinks = [];
+        if (targetRel) {
+          siblingLinks = state.children.filter(c => c.parentId === targetRel.id && c.parentType === 'relationship');
+        } else {
+          siblingLinks = state.children.filter(c => c.parentId === selected.id && c.parentType === 'individual');
+        }
+        
+        const siblingNodes = siblingLinks.map(link => state.people.find(p => p.id === link.childId)).filter(Boolean);
+        
+        if (siblingNodes.length > 0) {
+          // Find the maximum X coordinate among siblings
+          const maxX = Math.max(...siblingNodes.map(s => s.x));
+          spawnX = maxX + 160; // place 160px to the right of the last child
+          spawnY = siblingNodes[0].y; // align on the same Y level
+        } else {
+          // No siblings, standard drop down
+          if (targetRel) {
+            const pA = state.people.find(p => p.id === targetRel.personA);
+            const pB = state.people.find(p => p.id === targetRel.personB);
+            if (pA && pB) {
+              spawnX = (pA.x + pB.x) / 2;
+            } else {
+              spawnX = selected.x;
+            }
+          } else {
+            spawnX = selected.x;
+          }
+          spawnY = selected.y + 120;
+        }
       }
     } else {
       const containerRect = canvasContainer.getBoundingClientRect();
@@ -609,20 +1055,33 @@ function setupEventListeners() {
         };
         addRelationship(newRel);
       } else if (relation === "child") {
-        const parentRels = state.relationships.filter(r => r.personA === selected.id || r.personB === selected.id);
-        if (parentRels.length === 1) {
-          const R = parentRels[0];
-          const newChildLink = {
-            childId: newPerson.id,
-            parentType: 'relationship',
-            parentId: R.id
-          };
-          addChild(newChildLink);
-        } else {
+        const secondParentVal = document.getElementById("pSecondParent") ? document.getElementById("pSecondParent").value : "none";
+        if (secondParentVal === "none") {
           const newChildLink = {
             childId: newPerson.id,
             parentType: 'individual',
             parentId: selected.id
+          };
+          addChild(newChildLink);
+        } else {
+          let rel = state.relationships.find(r => 
+            (r.personA === selected.id && r.personB === secondParentVal) ||
+            (r.personA === secondParentVal && r.personB === selected.id)
+          );
+          if (!rel) {
+            const relId = "rel_" + Date.now();
+            rel = {
+              id: relId,
+              type: 'married',
+              personA: selected.id,
+              personB: secondParentVal
+            };
+            addRelationship(rel);
+          }
+          const newChildLink = {
+            childId: newPerson.id,
+            parentType: 'relationship',
+            parentId: rel.id
           };
           addChild(newChildLink);
         }
@@ -631,12 +1090,20 @@ function setupEventListeners() {
 
     // Reset Form
     addPersonForm.reset();
-    document.querySelectorAll(".trait-row").forEach(row => row.classList.remove("checked"));
+    renderTraitsChecklists();
     
     // Hide and reset relation dropdown block
     const relationFieldContainer = document.getElementById("relationFieldContainer");
     if (relationFieldContainer) {
       relationFieldContainer.style.display = "none";
+    }
+    const secondParentFieldContainer = document.getElementById("secondParentFieldContainer");
+    if (secondParentFieldContainer) {
+      secondParentFieldContainer.style.display = "none";
+    }
+    const relationHint = document.getElementById("relationHint");
+    if (relationHint) {
+      relationHint.style.display = "none";
     }
     const pRelation = document.getElementById("pRelation");
     if (pRelation) {
@@ -719,6 +1186,13 @@ function setupEventListeners() {
     state.gridSnap = !state.gridSnap;
     snapGridBtn.classList.toggle("active", state.gridSnap);
   });
+  if (toggleRolesBtn) {
+    toggleRolesBtn.addEventListener("click", () => {
+      state.showRelationshipRoles = !state.showRelationshipRoles;
+      toggleRolesBtn.classList.toggle("active", state.showRelationshipRoles);
+      render();
+    });
+  }
   autoLayoutBtn.addEventListener("click", runAutoLayout);
   clearAllBtn.addEventListener("click", clearAll);
 
@@ -770,6 +1244,156 @@ function setupEventListeners() {
       addNewPersonWithGender(gender);
     });
   });
+
+  // Smart Relationship and Custom Disease UI bindings
+  const pRelation = document.getElementById("pRelation");
+  const secondParentFieldContainer = document.getElementById("secondParentFieldContainer");
+  const relationHint = document.getElementById("relationHint");
+  
+  if (pRelation) {
+    pRelation.addEventListener("change", () => {
+      const relation = pRelation.value;
+      const selected = state.people.find(p => p.id === state.selectedId);
+      if (!selected) {
+        relationHint.style.display = "none";
+        secondParentFieldContainer.style.display = "none";
+        return;
+      }
+      
+      if (relation === "none") {
+        relationHint.style.display = "none";
+        secondParentFieldContainer.style.display = "none";
+      } else {
+        relationHint.style.display = "block";
+        if (relation === "father") {
+          secondParentFieldContainer.style.display = "none";
+          const motherLink = state.children.find(link => 
+            link.childId === selected.id && 
+            link.parentType === 'individual' && 
+            state.people.some(p => p.id === link.parentId && p.gender === 'F')
+          );
+          if (motherLink) {
+            const mother = state.people.find(p => p.id === motherLink.parentId);
+            relationHint.innerHTML = `💡 <strong>Smart Mapping:</strong> Will automatically link the new Father with Mother <strong>${mother.name}</strong> as partners, and set <strong>${selected.name}</strong> as their child.`;
+          } else {
+            relationHint.innerHTML = `💡 Will add a Father and link <strong>${selected.name}</strong> as his child.`;
+          }
+        } else if (relation === "mother") {
+          secondParentFieldContainer.style.display = "none";
+          const fatherLink = state.children.find(link => 
+            link.childId === selected.id && 
+            link.parentType === 'individual' && 
+            state.people.some(p => p.id === link.parentId && p.gender === 'M')
+          );
+          if (fatherLink) {
+            const father = state.people.find(p => p.id === fatherLink.parentId);
+            relationHint.innerHTML = `💡 <strong>Smart Mapping:</strong> Will automatically link the new Mother with Father <strong>${father.name}</strong> as partners, and set <strong>${selected.name}</strong> as their child.`;
+          } else {
+            relationHint.innerHTML = `💡 Will add a Mother and link <strong>${selected.name}</strong> as her child.`;
+          }
+        } else if (relation === "partner") {
+          secondParentFieldContainer.style.display = "none";
+          relationHint.innerHTML = `💡 Will add a Partner and draw a marriage connection to <strong>${selected.name}</strong>.`;
+        } else if (relation === "child") {
+          secondParentFieldContainer.style.display = "block";
+          updateSecondParentOptions(selected.id);
+          updateChildRelationHint();
+        }
+      }
+    });
+  }
+
+  const pSecondParent = document.getElementById("pSecondParent");
+  if (pSecondParent) {
+    pSecondParent.addEventListener("change", updateChildRelationHint);
+  }
+
+  function updateChildRelationHint() {
+    const selected = state.people.find(p => p.id === state.selectedId);
+    if (!selected) return;
+    const parentVal = pSecondParent.value;
+    if (parentVal === "none") {
+      relationHint.innerHTML = `💡 Will link the new Child to <strong>${selected.name}</strong> as a single parent.`;
+    } else {
+      const parent2 = state.people.find(p => p.id === parentVal);
+      if (parent2) {
+        relationHint.innerHTML = `💡 <strong>Smart Mapping:</strong> Will automatically set both <strong>${selected.name}</strong> and <strong>${parent2.name}</strong> as the parents of this child, creating a partnership if needed.`;
+      }
+    }
+  }
+
+  // Custom disease button handler in Add form
+  const addCustomDiseaseBtn = document.getElementById("addCustomDiseaseBtn");
+  const pCustomDiseaseInput = document.getElementById("pCustomDisease");
+  if (addCustomDiseaseBtn && pCustomDiseaseInput) {
+    addCustomDiseaseBtn.addEventListener("click", () => {
+      const name = pCustomDiseaseInput.value.trim();
+      if (name) {
+        const newTrait = addCustomDisease(name);
+        if (newTrait) {
+          const cb = document.querySelector(`#pTraitsList .trait-cb[value="${newTrait.id}"]`);
+          if (cb) {
+            cb.checked = true;
+            const row = cb.closest(".trait-row");
+            if (row) row.classList.add("checked");
+          }
+          pCustomDiseaseInput.value = "";
+        }
+      }
+    });
+    pCustomDiseaseInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addCustomDiseaseBtn.click();
+      }
+    });
+  }
+}
+
+function updateSecondParentOptions(selectedPersonId) {
+  const pSecondParent = document.getElementById("pSecondParent");
+  if (!pSecondParent) return;
+  
+  const selected = state.people.find(p => p.id === selectedPersonId);
+  if (!selected) {
+    pSecondParent.innerHTML = '<option value="none">None (Single Parent)</option>';
+    return;
+  }
+  
+  // Find partners of selected person
+  const partnerIds = state.relationships
+    .filter(r => r.personA === selected.id || r.personB === selected.id)
+    .map(r => r.personA === selected.id ? r.personB : r.personA);
+  
+  let candidates = state.people.filter(p => p.id !== selected.id);
+  if (selected.gender === 'M') {
+    candidates = candidates.filter(p => p.gender === 'F');
+  } else if (selected.gender === 'F') {
+    candidates = candidates.filter(p => p.gender === 'M');
+  }
+  
+  candidates.sort((a, b) => {
+    const aIsPartner = partnerIds.includes(a.id);
+    const bIsPartner = partnerIds.includes(b.id);
+    if (aIsPartner && !bIsPartner) return -1;
+    if (!aIsPartner && bIsPartner) return 1;
+    return a.name.localeCompare(b.name);
+  });
+  
+  let optionsHtml = '<option value="none">None (Single Parent)</option>';
+  candidates.forEach(c => {
+    const isPartner = partnerIds.includes(c.id);
+    const suffix = isPartner ? ' (Spouse/Partner)' : '';
+    optionsHtml += `<option value="${c.id}">${c.name}${suffix}</option>`;
+  });
+  
+  pSecondParent.innerHTML = optionsHtml;
+  
+  if (partnerIds.length > 0 && candidates.length > 0 && partnerIds.includes(candidates[0].id)) {
+    pSecondParent.value = candidates[0].id;
+  } else {
+    pSecondParent.value = "none";
+  }
 }
 
 // Update option lists inside sidebar dropdowns
@@ -1232,6 +1856,14 @@ function selectElement(type, id) {
       if (relationSelectedName) {
         relationSelectedName.textContent = person.name;
       }
+      // Reset relation fields and update second parent options
+      const pRelation = document.getElementById("pRelation");
+      if (pRelation) pRelation.value = "none";
+      const secondParentFieldContainer = document.getElementById("secondParentFieldContainer");
+      if (secondParentFieldContainer) secondParentFieldContainer.style.display = "none";
+      const relationHint = document.getElementById("relationHint");
+      if (relationHint) relationHint.style.display = "none";
+      updateSecondParentOptions(person.id);
     }
   } else {
     const relationFieldContainer = document.getElementById("relationFieldContainer");
@@ -1349,6 +1981,13 @@ function showSelectionDetails() {
             <label for="editAdopted" class="checkbox-label">Adopted Status (Brackets)</label>
           </div>
         </div>
+        <div class="form-field" style="margin-top: 8px;">
+          <label>Add Custom Disease</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="editCustomDisease" placeholder="e.g. Alzheimer's" class="cream-input" style="flex: 1;">
+            <button type="button" id="addEditCustomDiseaseBtn" class="secondary-btn" style="width: auto; padding: 0 14px; margin: 0; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;">+</button>
+          </div>
+        </div>
         <div class="form-field">
           <label>Medical Conditions</label>
           <div class="traits-checkbox-list">
@@ -1411,6 +2050,35 @@ function showSelectionDetails() {
         editDeathRow.style.display = editDeceasedCb.checked ? "block" : "none";
         if (!editDeceasedCb.checked) {
           document.getElementById("editDeath").value = "";
+        }
+      });
+    }
+
+    // Custom disease button handler in Edit form
+    const addEditCustomDiseaseBtn = document.getElementById("addEditCustomDiseaseBtn");
+    const editCustomDiseaseInput = document.getElementById("editCustomDisease");
+    if (addEditCustomDiseaseBtn && editCustomDiseaseInput) {
+      addEditCustomDiseaseBtn.addEventListener("click", () => {
+        const name = editCustomDiseaseInput.value.trim();
+        if (name) {
+          const newTrait = addCustomDisease(name);
+          if (newTrait) {
+            const currentCheckedTraits = [];
+            document.querySelectorAll(".edit-trait-cb:checked").forEach(cb => {
+              currentCheckedTraits.push(cb.value);
+            });
+            if (!currentCheckedTraits.includes(newTrait.id)) {
+              currentCheckedTraits.push(newTrait.id);
+            }
+            p.traits = currentCheckedTraits;
+            showSelectionDetails();
+          }
+        }
+      });
+      editCustomDiseaseInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addEditCustomDiseaseBtn.click();
         }
       });
     }
@@ -1641,28 +2309,37 @@ function render() {
   const relMidpoints = {};
   
   // 1. DRAW RELATIONSHIP (SPOUSE/PARTNER) LINES
+  // Standard clinical genogram: horizontal line between partner shapes at the same Y level.
+  // Never drops through the text area below nodes.
   state.relationships.forEach(rel => {
     const pA = state.people.find(p => p.id === rel.personA);
     const pB = state.people.find(p => p.id === rel.personB);
     
     if (!pA || !pB) return;
     
-    // Connection points (bottom center of shapes)
-    const Ax = pA.x;
-    const Ay = pA.y + 20;
-    const Bx = pB.x;
-    const By = pB.y + 20;
+    // Determine left/right ordering for clean routing
+    const [left, right] = pA.x <= pB.x ? [pA, pB] : [pB, pA];
     
-    // Drop line must clear name+date labels below the shape.
-    // Shape bottom = node.y+20, name at +36, date at +51 → drop at +75 clears both.
-    const dropY = Math.max(pA.y, pB.y) + 75;
+    // Connection anchors: right edge of left shape → left edge of right shape
+    // Shape radius = 20. For diamond/circle the side anchor is at ±20 horizontally.
+    const Ax = left.x + 20;
+    const Ay = left.y;
+    const Bx = right.x - 20;
+    const By = right.y;
     
-    // Draw connecting path (drops from A, runs horizontally at dropY, goes up to B)
-    const linePath = `M ${Ax} ${Ay} L ${Ax} ${dropY} L ${Bx} ${dropY} L ${Bx} ${By}`;
+    let linePath;
+    if (Math.abs(Ay - By) < 5) {
+      // Same generation — simple horizontal line (standard)
+      linePath = `M ${Ax} ${Ay} L ${Bx} ${By}`;
+    } else {
+      // Different Y levels — route via midY with clean right-angle bends
+      const midY = (Ay + By) / 2;
+      linePath = `M ${Ax} ${Ay} L ${Ax + 10} ${Ay} L ${Ax + 10} ${midY} L ${Bx - 10} ${midY} L ${Bx - 10} ${By} L ${Bx} ${By}`;
+    }
     
-    // Calculate line midpoint
+    // Midpoint of the horizontal bar — child lines drop from here
     const Mx = (Ax + Bx) / 2;
-    const My = dropY;
+    const My = (Ay + By) / 2;
     relMidpoints[rel.id] = { x: Mx, y: My };
     
     // Create Line Element
@@ -1687,7 +2364,7 @@ function render() {
       <path d="${linePath}" stroke="${strokeColor}" ${dashAttr} fill="none" class="${strokeClass} ${highlight}" />
     `;
     
-    // Draw slashes for divorces or separations
+    // Draw slashes for divorces or separations (on the horizontal bar)
     const slashColor = state.isColorMode ? "#826f56" : "#000000";
     if (rel.type === 'divorced') {
       gLine.innerHTML += `
@@ -1752,7 +2429,7 @@ function render() {
       const Cy = child.y - 20; // top connection
       
       const path = `M ${Px} ${Py} L ${Px} ${splitY} L ${Cx} ${splitY} L ${Cx} ${Cy}`;
-      gChildren.innerHTML = `<path d="${path}" stroke="${strokeColor}" stroke-width="2.5" fill="none" />`;
+      gChildren.innerHTML = `<path d="${path}" stroke="${strokeColor}" stroke-width="1.8" fill="none" />`;
     } else {
       // Multiple children: drop from parent, horizontal bar, and vertical drop lines to each child
       const minX = childNodes[0].x;
@@ -1760,16 +2437,16 @@ function render() {
       
       let paths = `
         <!-- Drop from parent midpoint -->
-        <path d="M ${Px} ${Py} L ${Px} ${splitY}" stroke="${strokeColor}" stroke-width="2.5" fill="none" />
+        <path d="M ${Px} ${Py} L ${Px} ${splitY}" stroke="${strokeColor}" stroke-width="1.8" fill="none" />
         <!-- Horizontal pedigree bar -->
-        <path d="M ${minX} ${splitY} L ${maxX} ${splitY}" stroke="${strokeColor}" stroke-width="2.5" fill="none" />
+        <path d="M ${minX} ${splitY} L ${maxX} ${splitY}" stroke="${strokeColor}" stroke-width="1.8" fill="none" />
       `;
       
       // Vertical drops for each child
       childNodes.forEach(child => {
         const Cx = child.x;
         const Cy = child.y - 20; // child top
-        paths += `<path d="M ${Cx} ${splitY} L ${Cx} ${Cy}" stroke="${strokeColor}" stroke-width="2.5" fill="none" />`;
+        paths += `<path d="M ${Cx} ${splitY} L ${Cx} ${Cy}" stroke="${strokeColor}" stroke-width="1.8" fill="none" />`;
       });
       
       gChildren.innerHTML = paths;
@@ -1794,8 +2471,13 @@ function render() {
     let baseFill = "#ffffff";
     
     if (state.isColorMode) {
-      strokeCol = p.gender === 'M' ? '#5681a8' : (p.gender === 'F' ? '#c97171' : (p.gender === 'P' ? '#789078' : '#c89c56'));
-      baseFill = p.gender === 'M' ? '#eaf1f7' : (p.gender === 'F' ? '#f9ebeb' : (p.gender === 'P' ? '#ebf2eb' : '#faf5eb'));
+      if (p.isProband) {
+        strokeCol = '#789078';
+        baseFill = '#ebf2eb';
+      } else {
+        strokeCol = p.gender === 'M' ? '#5681a8' : (p.gender === 'F' ? '#c97171' : (p.gender === 'P' ? '#789078' : '#c89c56'));
+        baseFill = p.gender === 'M' ? '#eaf1f7' : (p.gender === 'F' ? '#f9ebeb' : (p.gender === 'P' ? '#ebf2eb' : '#faf5eb'));
+      }
     }
     
     // Quadrant paths for Traits
@@ -1809,19 +2491,26 @@ function render() {
         // Resolve pattern or color fill
         let fillStyle = "";
         if (state.isColorMode) {
-          // Explicit map: trait ID → CSS color value (must match legend swatches)
-          const TRAIT_COLORS = {
-            heart_disease: '#d9625d',
-            diabetes: '#cfa140',
-            hypertension: '#4da5bc',
-            cancer: '#8b6db8',
-            depression: '#66ad75',
-            substance_abuse: '#a35a58',
-            asthma: '#d6874b',
-            hemophilia: '#b84f4f',
-            prediabetic: '#e3c16f',
-          };
-          const color = TRAIT_COLORS[traitId] || '#999999';
+          const traitDef = ALL_TRAITS.find(t => t.id === traitId);
+          let color = '#999999';
+          if (traitDef) {
+            if (traitDef.isCustom) {
+              color = traitDef.color;
+            } else {
+              const TRAIT_COLORS = {
+                heart_disease: '#d9625d',
+                diabetes: '#cfa140',
+                hypertension: '#4da5bc',
+                cancer: '#8b6db8',
+                depression: '#66ad75',
+                substance_abuse: '#a35a58',
+                asthma: '#d6874b',
+                hemophilia: '#b84f4f',
+                prediabetic: '#e3c16f',
+              };
+              color = TRAIT_COLORS[traitId] || '#999999';
+            }
+          }
           fillStyle = `fill="${color}"`;
         } else {
           fillStyle = `fill="url(#pat_${traitId})"`;
@@ -1876,7 +2565,7 @@ function render() {
     const filterShadow = state.isColorMode ? 'filter="url(#shadowFilter)"' : "";
     
     if (p.gender === 'M') {
-      shapeHtml = `<rect x="-20" y="-20" width="40" height="40" fill="${baseFill}" stroke="${strokeCol}" ${filterShadow} />`;
+      shapeHtml = `<rect x="-20" y="-20" width="40" height="40" rx="3" ry="3" fill="${baseFill}" stroke="${strokeCol}" ${filterShadow} />`;
     } else if (p.gender === 'F') {
       shapeHtml = `<circle cx="0" cy="0" r="20" fill="${baseFill}" stroke="${strokeCol}" ${filterShadow} />`;
     } else if (p.gender === 'P') {
@@ -1889,13 +2578,13 @@ function render() {
     let probandHtml = "";
     if (p.isProband) {
       if (p.gender === 'M') {
-        probandHtml = `<rect x="-24" y="-24" width="48" height="48" fill="none" stroke="${strokeCol}" stroke-width="2" />`;
+        probandHtml = `<rect x="-24" y="-24" width="48" height="48" rx="4" ry="4" fill="none" stroke="${strokeCol}" stroke-width="1.5" />`;
       } else if (p.gender === 'F') {
-        probandHtml = `<circle cx="0" cy="0" r="24" fill="none" stroke="${strokeCol}" stroke-width="2" />`;
+        probandHtml = `<circle cx="0" cy="0" r="24" fill="none" stroke="${strokeCol}" stroke-width="1.5" />`;
       } else if (p.gender === 'P') {
-        probandHtml = `<polygon points="0,-25 25,19 -25,19" fill="none" stroke="${strokeCol}" stroke-width="2" />`;
+        probandHtml = `<polygon points="0,-25 25,19 -25,19" fill="none" stroke="${strokeCol}" stroke-width="1.5" />`;
       } else {
-        probandHtml = `<polygon points="0,-25 25,0 0,25 -25,0" fill="none" stroke="${strokeCol}" stroke-width="2" />`;
+        probandHtml = `<polygon points="0,-25 25,0 0,25 -25,0" fill="none" stroke="${strokeCol}" stroke-width="1.5" />`;
       }
     }
 
@@ -1903,8 +2592,8 @@ function render() {
     let adoptedHtml = "";
     if (p.isAdopted) {
       adoptedHtml = `
-        <path d="M -26 -22 L -31 -22 L -31 22 L -26 22" stroke="${strokeCol}" stroke-width="2" fill="none" />
-        <path d="M 26 -22 L 31 -22 L 31 22 L 26 22" stroke="${strokeCol}" stroke-width="2" fill="none" />
+        <path d="M -26 -22 L -31 -22 L -31 22 L -26 22" stroke="${strokeCol}" stroke-width="1.5" fill="none" />
+        <path d="M 26 -22 L 31 -22 L 31 22 L 26 22" stroke="${strokeCol}" stroke-width="1.5" fill="none" />
       `;
     }
 
@@ -1949,9 +2638,19 @@ function render() {
     }
 
     // --- Name label: bold, below shape, safely above the drop line (at +75) ---
-    const displayName = p.name.length > 18 ? p.name.substring(0, 16) + '\u2026' : p.name;
+    let displayName = p.name.length > 18 ? p.name.substring(0, 16) + '\u2026' : p.name;
+    if (state.showRelationshipRoles) {
+      const proband = state.people.find(item => item.isProband);
+      if (proband) {
+        const role = getRelationshipLabel(p.id, proband.id);
+        if (role) {
+          displayName = role;
+        }
+      }
+    }
     const nameY = p.gender === 'P' ? 34 : 36;
 
+    const haloColor = state.isColorMode ? '#faf9f6' : '#ffffff';
     const nameHtml = `<text
       x="0" y="${nameY}"
       text-anchor="middle"
@@ -1959,6 +2658,7 @@ function render() {
       font-size="11"
       font-weight="700"
       fill="${textCol}"
+      stroke="${haloColor}" stroke-width="4" paint-order="stroke fill" stroke-linejoin="round"
       pointer-events="none">${displayName}</text>`;
 
     // --- Date label: (birthYear) or (birthYear–deathYear) ---
@@ -1979,6 +2679,7 @@ function render() {
         font-size="9"
         font-weight="400"
         fill="${mutedCol}"
+        stroke="${haloColor}" stroke-width="4" paint-order="stroke fill" stroke-linejoin="round"
         pointer-events="none">${dateText}</text>`;
     }
 
